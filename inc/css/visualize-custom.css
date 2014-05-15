@@ -1,0 +1,77 @@
+.visualize{
+	margin-top:40px;
+	margin-left:50px;
+}
+div.visualize-info{
+	right:-420px !important;
+	top:0px !important;
+	opacity:1 !important;
+	width:400px;
+}
+div.visualize-title{
+	font-weight:bold;
+}
+div#vias_recepcao caption, div#perfil_consultantes caption, div#tempo_resposta caption, div#grafico_pedidos caption, div#pedidos_informacao caption{
+	font-size:16px;
+	font-weight:bold;
+	margin-bottom: 30px;
+}
+div#vias_recepcao .label, div#perfil_consultantes .label, div#tempo_resposta .label, div#grafico_pedidos .label, div#pedidos_informacao .label{
+	background:none;
+	font-size:10px;
+	font-weight:normal;
+	padding:0px;
+}
+div#vias_recepcao{
+	text-align: left;
+}
+div#vias_recepcao, div#perfil_consultantes, div#tempo_resposta, div#pedidos_informacao, div#grafico_pedidos{
+	text-align: left;
+	margin-bottom:50px !important;
+	float:none !important;
+}
+div#tempo_resposta{
+	text-align: left;
+}
+div#pedidos_informacao{
+	text-align: left;
+}
+div#grafico_pedidos{
+	text-align: left;
+}
+table#pedidos_graph, table#vias_recepcao_graph, table#perfil_consultantes_graph, table#tempo_resposta_graph{
+	margin-left: 50px;
+}
+
+
+div#vias_recepcao caption, div#perfil_consultantes caption, div#tempo_resposta caption, div#grafico_pedidos caption, div#pedidos_informacao caption{
+	font-size:16px;
+	font-weight:bold;
+	margin-bottom: 30px;
+}
+div.bright_graph .label, div#perfil_consultantes .label, div#tempo_resposta .label, div#grafico_pedidos .label, div#pedidos_informacao .label{
+	background:none;
+	font-size:10px;
+	font-weight:normal;
+	padding:0px;
+}
+div.bright_graph{
+	text-align: left;
+}
+div.bright_graph, div#perfil_consultantes, div#tempo_resposta, div#pedidos_informacao, div#grafico_pedidos{
+	text-align: left;
+	margin-bottom:50px !important;
+	float:none !important;
+}
+div#tempo_resposta{
+	text-align: left;
+}
+div#pedidos_informacao{
+	text-align: left;
+}
+div#grafico_pedidos{
+	text-align: left;
+}
+table#pedidos_graph, table.bright_graph_graph, table#perfil_consultantes_graph, table#tempo_resposta_graph{
+	margin-left: 50px;
+}
