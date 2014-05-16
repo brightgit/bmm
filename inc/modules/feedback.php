@@ -9,14 +9,14 @@
 	//settings object
 	$settings = new Settings;
 
-	$_SERVER["HTTP_HOST"] = "holmesplacesnews.pt";
+	//$_SERVER["HTTP_HOST"] = "holmesplacesnews.pt";
 
 
 	//definição de vars importantes provenientes das settings
-	define("FEEDBACK_URL", "http://pme24.net/holmes/bmm/inc/modules/feedback.php");
-	define("NEWSLETTER_VIEW_URL", "http://pme24.net/holmes/bmm/inc/visualize_news.php");
-	define("SUBSCRIPTION_REMOVE_URL", "http://pme24.net/holmes/bmm/inc/remove.php");
-	define("LINK_REDIRECT_URL", "http://pme24.net/holmes/bmm/inc/link.php");
+	define("FEEDBACK_URL", "http://pme24.net/bmm/inc/modules/feedback.php");
+	define("NEWSLETTER_VIEW_URL", "http://pme24.net/bmm/inc/visualize_news.php");
+	define("SUBSCRIPTION_REMOVE_URL", "http://pme24.net/bmm/inc/remove.php");
+	define("LINK_REDIRECT_URL", "http://pme24.net/bmm/inc/link.php");
 	//define("BASE_DIR", $settings->base_path);
 	define("BASE_DIR", $abs_path);
 
@@ -587,15 +587,15 @@
 
 	}
 
-	function base_path(){
-		//chroot/home/brightmi/brightminds.pt/html/bmm/ « isto tem de ser o base path - todos têm chroot/home/<conta_unix>/<domain>/html/<pasta onde está o bmm>
-		$homedir = getcwd();
-		$base_dir = str_replace('/admin', "", $homedir);
+	// function base_path(){
+	// 	//chroot/home/brightmi/brightminds.pt/html/bmm/ « isto tem de ser o base path - todos têm chroot/home/<conta_unix>/<domain>/html/<pasta onde está o bmm>
+	// 	$homedir = getcwd();
+	// 	$base_dir = str_replace('/admin', "", $homedir);
 
-		//implementar o base_path das settings
-		$base_dir = "/Users/bright/Documents/htdocs/bmm";
+	// 	//implementar o base_path das settings
+	// 	$base_dir = "/Users/bright/Documents/htdocs/bmm";
 
-		return $base_dir."/";
-	}
+	// 	return $base_dir."/";
+	// }
 	
 ?>

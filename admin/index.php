@@ -57,7 +57,7 @@ $tools = $core->getTools();
 	<div class="bright-bo">
 		<div class="header">
 			<div class="logo">
-				<a href='http://pme24.net/holmes/bmm/admin/index.php?mod=dashboard'>
+				<a href='index.php?mod=dashboard'>
 					<img alt="" src="../inc/img/admin/logo.png" />
 				</a>
 			</div>

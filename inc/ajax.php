@@ -33,7 +33,7 @@ if($_GET['act'] == 'get_subscriber_details' ):
 	$id = $_GET["id"];
 	
 	//buscar info
-	$sql = "SELECT email, is_active, date_created, hard_bounces_count FROM subscribers WHERE id = " . $id;
+	$sql = "SELECT id, email, is_active, date_created, hard_bounces_count, data_nascimento, telefone_1, telefone_2, sexo, nome FROM subscribers WHERE id = " . $id;
 	$query = mysql_query($sql);
 	$info = mysql_fetch_object($query);
 	
@@ -59,9 +59,15 @@ if($_GET['act'] == 'get_subscriber_details' ):
 			
 	//iniciar output
 	echo '<input type="hidden" name="email_id" val="'.$id.'" />';
+
+	if(!empty($info->nome)){
+	echo '<span class="popover-label">Nome:</span>';
+	echo '<span class="popover-value">'.$info->nome.' (<a href="index.php?mod=subscribers&id='.$info->id.'">ver perfil</a>)</span>';	
+	}
+
 	echo '<span class="popover-label">Email:</span>';
 	echo '<span class="popover-value">'.$info->email.'</span>';
-	
+
 	echo '<span class="popover-label">Data de inserção:</span>';
 	echo '<span class="popover-value">'.date("d/m/Y", strtotime($info->date_created)).'</span>';
 	

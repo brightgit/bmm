@@ -127,7 +127,19 @@ class ViewMass_email {
 
 			//envio via Mandril
 			if(isset($_GET["mandrill"]) && $_GET["mandrill"] == "true"){
-				
+
+				//obter dados de envio (sender && user)
+				$user_id = $_SESSION["user"]->id; //info do user que submeteu o envio
+				$sender_id = $_POST["sender_id"]; //info do sender
+
+				$sql = "SELECT * FROM senders WHERE id = " . $sender_id;
+				$query = mysql_query($sql);
+				$result = mysql_fetch_object($query);
+
+				$return_path = $result->return_path;
+				$from_email = $result->email;
+				$from_name = $result->email_from;
+			
 				require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
@@ -137,8 +149,8 @@ class ViewMass_email {
 			        'html' => $html_body,
 			        'text' => $mensagem->mensagem_text,
 			        'subject' => $mensagem->assunto,
-			        'from_email' => $this->core->settings->sender_email_from,
-			        'from_name' => $this->core->settings->sender_name,
+			        'from_email' => $from_email,
+			        'from_name' => $from_name,
 			        'to' => array(
 			            array(
 			                'email' => $_POST['text_email'],
@@ -146,7 +158,7 @@ class ViewMass_email {
 			                'type' => 'to'
 			            )
 			        ),
-			        'headers' => array('Reply-To' => $this->core->settings->return_path),
+			        'headers' => array('Reply-To' => $return_path),
 			        'important' => false,
 			        'track_opens' => false,
 			        'track_clicks' => false,
@@ -185,14 +197,16 @@ class ViewMass_email {
 				
 					BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
 
-					$query = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string( $mensagem->mensagem )."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'sucesso')";
-					echo '<div class="alert alert-success">Mensagem enviada com sucesso.</div>';
+					$sql = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string( $mensagem->mensagem )."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'sucesso')";
+					$query = mysql_query($sql);
+					tools::notify_add("Mensagem de teste enviada com sucesso", "success");
 					echo '<meta http-equiv="refresh" content="3; url=?mod=newsletter&view=pre_send&id='.$_POST['mensagem_id'].'">';
 				}
 				else
 				{
-					$query = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string($mensagem->mensagem)."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'erro')";
-					echo '<div class="error">Houve um erro ao enviar o email.</div>';
+					$sql = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string($mensagem->mensagem)."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'erro')";
+					$query = mysql_query($sql);
+					tools::notify_add("Ocorreu um erro ao enviar o email de teste");
 					echo '<meta http-equiv="refresh" content="50; url=?mod=newsletter&view=pre_send&id='.$_POST['mensagem_id'].'">';
 				}
 

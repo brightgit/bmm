@@ -1420,3 +1420,12 @@ div#messages{
 	border-left: 4px solid #d9534f;
 }
 /* noty styles - notification messages */
+
+textarea[name=mensagem_text]{
+	width: 99%;
+	height: 150px;
+}
+
+.send-tips li{
+	margin: 0px 5px 5px 0px;
+}

@@ -30,7 +30,8 @@ class Settings{
 		//act upon act
 		if(!empty($_GET["act"])){
 			$act = $_GET["act"];
-			$this->$act();
+			if(method_exists($act))
+				$this->$act();
 		}
 	}
 
@@ -157,10 +158,10 @@ class Settings{
 		$query = mysql_query($sql);
 
 		if($query)
-			echo "<div class=\"alert alert-success\">Defini&ccedil;&otilde;es actualizadas com sucesso</div>";
+			tools::notify_add("Definições actualizadas com sucesso", "success");
 		
 		else{
-			echo "<div class=\"alert alert-success\">Erro na actualiza&ccedil;&atilde;o das defini&ccedil;&otilde;es ".mysql_error()."</div>";
+			tools::notify_add("Erro na actualização das definições");
 			return false;
 		}
 

@@ -66,7 +66,7 @@ $(document).ready(function(){
 	        easing: 'swing',
 	        speed: 500 // opening & closing animation speed
 	    },
-	    timeout: false, // delay for closing event. Set false for sticky notifications
+	    timeout: 3500, // delay for closing event. Set false for sticky notifications
 	    force: false, // adds notification to the beginning of queue when set to true
 	    modal: false,
 	    maxVisible: 5, // you can set max visible notification for dismissQueue true option,
@@ -105,7 +105,7 @@ $(document).ready(function(){
 
 		counter_input ++;
 		var parent_row = $(this).parent().parent(); //tr
-		var full_row = '<tr><td><input type="text" name="sender[new]['+counter_input+'][email]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][email_from]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][return_path]" value=""></td><td><div class="table-actions"><a class="link-confirm btn btn-small btn-danger" href="?mod=settings&amp;act=delete_sender[new]&amp;id=17"><i class="icon-white icon-remove"></i></a></div></td></tr>';
+		var full_row = '<tr><td><input type="text" name="sender[new]['+counter_input+'][email]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][email_from]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][return_path]" value=""></td><td><div class="table-actions"></div></td></tr>';
 		
 		$(full_row).insertBefore($(parent_row));
 	})

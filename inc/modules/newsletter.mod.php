@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Freepage
- *
- * Class to manage news.
- *
- *
- * @package Bright CMS
- * @author Fred Flinstone
- * @var
- * */
 class Newsletter {
 
 	//private $mode = 'fe';

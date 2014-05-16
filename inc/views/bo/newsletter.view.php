@@ -110,6 +110,12 @@ class ViewNewsletter {
 		unset($this->ckeditor);
 	}
 
+	public function get_sender_info($sender_id){
+		$sql = "SELECT * FROM senders WHERE id = " . $sender_id;
+		$query = mysql_query($sql);
+		return $result = mysql_fetch_object($query);
+	}
+
 	public function get_senders(){
 		$sql = "SELECT * from senders";
 		$query = mysql_query($sql);
@@ -279,7 +285,7 @@ class ViewNewsletter {
 
 		if($query){
 			while ($row = mysql_fetch_object($query))
-				$output[$row->id] = $row->email_from;
+				$output[$row->id] = array("email_from" => $row->email_from, "email" => $row->email);
 
 			return $output;
 		}
@@ -522,19 +528,16 @@ function enviar($id = -1){
 	?>
 	<div class="alert alert-info"><h1>A enviar mensagem: <?php echo $mensagem->assunto; ?></h1></div>
 	<p style="text-align:left;">Antes de enviar, por favor confirme que:</p>
-	<ul style="text-align:left;">
-		<li style="padding:5px 0px;">Envie email de teste para várias plataformas: hotmail, gmail, outlook, thunderbird ou qualquer outra que ache que os seus subscritores possam utilizar para visualizar o email. Caso encontre erros reedite a mensagem de forma a que todos a possam visualizar correctamente.</li>
-		<li style="padding:5px 0px;">Coloque um link apenas em texto para a página online de forma a que quem não consegue visualizar tenha uma página própria para o fazer. EX: <q>Se não consegue visualizar esta newsletter clique <a href="#">aqui</a>.</q></li>
-		<li style="padding:5px 0px;">Deve colocar informação para a direta remoção do email da mailing list de forma a que as pessoas não cliquem no "spam". Quantas mais pessoas o fizerem mais provável é que a próxima newsletter vá para o spam de toda a gente daquele dominio (gmail, hotmail, etc)</li>
-		<li style="padding:5px 0px;">Experiemente a página de visualização em vários browser de forma a garantir que está tudo igual em qualquer lado.</li>
-		<li style="padding:5px 0px;">Pense no que o faz denunciar emails como spam e tente não o fazer: Enviar demasiados emails, enviar emails em Português a Ingleses e vice-versa, enviar emails confusos, enviar emails com informação diferente do que o que o utilizador está à espera.</li>
+	<ul class="send-tips">
+		<li>Enviou um email de teste para várias plataformas e mail services por forma a garantir a mesma experiência de visualização a todos os destinatários.</li>
+		<li>Adicionou um link alternativo de visualização da newsletter no navegador</li>
+		<li>Adicionou um link / método de remoção da mailing list. A falta de um método de remoção poderá trazer complicações legais em caso de queixa.</li>
+		<li>Cumpriu, dentro do possível as boas práticas na composição de um email HTML: textos preferencialmente escritos e não embebidos em imagens; HTML bem construído com <b>alts</b> em imagens sempre que aplicável.</li>
 
 		<li style="padding:15px 0px; font-weight:bold; list-style-type:none;"><i class="icon-exclamation-sign"></i> Avançado</li>
 
-		<li style="padding:5px 0px;">Não coloque qualquer tipo de javascript ou a newsletter irá derectamente para o spam.</li>
-		<li style="padding:5px 0px;">Não coloque qualquer css em folhas externas.</li>
-		<li style="padding:5px 0px;">Imagems dentro de células de tabelas têm que ter "float:left;" de forma a não ficar com uma linha branca no fundo.</li>
-		<li style="padding:5px 0px;">Quando clico em subscrever esse email fica automaticamente gravado com a língua em que o utilizador está a visualizar o site, daí haver subscritores pt e en.</li>
+		<li>Não utilizar JavaScript ou links externos para CSS.</li>
+		<li>A submissão de vários testes de envio para determinados mail services, poderá aumentar a possibilidade de um envio definitivo ser tratado como legítimo.</li>
 	</ul>
 
 	<form action="?mod=mass_email" method="post">
@@ -559,8 +562,25 @@ function enviar($id = -1){
 			} 
 			?>
 
-			<h2>Enviar para os seguintes grupos</h2>
+			<h2>Opções de envio</h2>
 			<div class="multiple-checkboxes well">
+
+				<label>Remetente</label>
+				
+				
+				<?php $sender_permissions = $this->get_sender_permissions($_SESSION["user"]->id) ?>
+
+				<select name="sender_id">
+					<option>Seleccione um remetente</option>
+					<?php foreach ($sender_permissions as $key => $email): ?>
+					<option value="<?php echo $key ?>"><?php echo $email["email_from"] ?> - <?php echo $email["email"] ?></option>
+					<?php endforeach ?>
+				</select>
+
+				<br /><br />
+
+				<label>Destinatários</label>
+				
 
 				<label class="checbox">
 					<input type="checkbox" class="select-all" />
@@ -773,6 +793,18 @@ function pre_send($id = -1){
 		<!--p style="text-align:left; background-color:whitesmoke; border:1px solid grey; margin:30px;" id="text_email_p"-->
 		<div class="well">
 			<div>
+
+				<label>Remetente</label>
+				
+				<?php $sender_permissions = $this->get_sender_permissions($_SESSION["user"]->id) ?>
+
+				<select name="sender_id">
+					<option>Seleccione um remetente</option>
+					<?php foreach ($sender_permissions as $key => $email): ?>
+					<option value="<?php echo $key ?>"><?php echo $email["email_from"] ?> - <?php echo $email["email"] ?></option>
+					<?php endforeach ?>
+				</select>
+
 				<p><i class="icon-info-sign"></i> <small>Ir&aacute; enviar esta newsletter para o endere&ccedil;o introduzido abaixo</small></p>
 				<input type="hidden" name="mensagem_id" value="<?php echo $_GET["id"] ?>" />
 				<label class="" for="text_email">Email de destino: </label>
@@ -1574,15 +1606,14 @@ function showMessages(){
 									<td><?php echo $row['estado']; ?></td>
 								-->
 								
-								<td>
-									<!--a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $row['id']; ?>">Preparar envio <i class="icon-white icon-share"></i></a>
-									<span class="statistics_link"><a href="?mod=newsletter&amp;view=statistics&amp;id=<?php echo $row['id']; ?>" class="btn btn-info"> Ver Estatísticas <i class="icon-white icon-align-left"></i></a></span>
-									<a class="btn btn-danger" href="?mod=newsletter&amp;view=messages&amp;remove=<?php echo $row["id"] ?>"><i class="icon-white icon-remove"></i> Remover</a-->
-										<a rel="tooltip-top" data-original-title="Editar" class="btn" href="?mod=newsletter&amp;view=add_mensagem&amp;id=<?php echo $row['id']?>"><i class="icon icon-pencil"></i></a>
-										<a rel="tooltip-top" data-original-title="Estat&iacute;sticas" href="?mod=newsletter&amp;view=statistics&amp;id=<?php echo $row['id']; ?>" class="btn"><i class="icon icon-align-left"></i></a>
-										<a rel="tooltip-top" data-original-title="Replicar" class="btn" href="?mod=newsletter&amp;view=messages&amp;duplicate=<?php echo $row["id"] ?>"><i class="icon icon-resize-full"></i></a>
-										<a rel="tooltip-top" data-original-title="Remover" class="btn btn-danger" href="?mod=newsletter&amp;view=messages&amp;remove=<?php echo $row["id"] ?>"><i class="icon-white icon-remove"></i></a>
-										<a rel="tooltip-top" data-original-title="Preparar envio" class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $row['id']; ?>"><i class="icon-white icon-share"></i></a>
+									<td>
+										<div class="table-actions">
+											<a rel="tooltip-top" data-original-title="Editar" class="btn" href="?mod=newsletter&amp;view=add_mensagem&amp;id=<?php echo $row['id']?>"><i class="icon icon-pencil"></i></a>
+											<a rel="tooltip-top" data-original-title="Estat&iacute;sticas" href="?mod=newsletter&amp;view=statistics&amp;id=<?php echo $row['id']; ?>" class="btn"><i class="icon icon-align-left"></i></a>
+											<a rel="tooltip-top" data-original-title="Replicar" class="btn" href="?mod=newsletter&amp;view=messages&amp;duplicate=<?php echo $row["id"] ?>"><i class="icon icon-resize-full"></i></a>
+											<a rel="tooltip-top" data-original-title="Remover" class="btn btn-danger" href="?mod=newsletter&amp;view=messages&amp;remove=<?php echo $row["id"] ?>"><i class="icon-white icon-remove"></i></a>
+											<a rel="tooltip-top" data-original-title="Preparar envio" class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $row['id']; ?>"><i class="icon-white icon-share"></i></a>
+										</div>
 									</td>
 								</tr>
 								<?php
@@ -1642,14 +1673,11 @@ function showMessages(){
 					$sql = "INSERT INTO user_permissions (user_id, group_id) VALUES ({$user_id}, {$group_id})";
 					$insert = mysql_query($sql);
 				}
-
-				echo "<div class=\"alert alert-success\"> Permiss&otilde;es do utilizador actualizadas com sucesso</div>";
-
 				return true;
 			}
 
 			else
-				echo "<div class=\"alert alert-info\">N&atilde;o foram definidas permissões para o utilizador</div> ";		
+				tools::notify_add("N&atilde;o foram definidas permissões de mailing lists para o utilizador", "info");
 
 		}
 
@@ -1666,14 +1694,13 @@ function showMessages(){
 					$insert = mysql_query($sql);
 				}
 
-				echo "<div class=\"alert alert-success\"> Permiss&otilde;es do utilizador actualizadas com sucesso</div>";
+				tools::notify_add("Definições do utilizador actualizadas com sucesso", "success");
 
 				return true;
 			}
 
 			else
-				echo "<div class=\"alert alert-info\">N&atilde;o foram definidas permissões para o utilizador</div> ";		
-
+				tools::notify_add("Não foram definidas permissões para o utilizador", "info");		
 		}
 
 		function update_user($id){
@@ -1697,9 +1724,6 @@ function showMessages(){
 			$sql = "UPDATE `users` SET `first_name` = '{$user_first_name}', `last_name` = '{$user_last_name}', `username` = '{$user_username}', `email` = '{$user_email}', ".$sql_password." `is_active` = {$is_active}, `user_group` = {$user_group} WHERE id = {$id}";
 
 			$query = mysql_query($sql);
-
-			if($query)
-				echo "<div class=\"alert alert-success\">Utilizador actualizado/inserido com sucesso</div> ";
 
 		//update as permissoes
 			$this->update_user_permissions($id, $user_group_permissions);
@@ -1728,7 +1752,7 @@ function showMessages(){
 			$query = mysql_query($sql);
 
 			if($query)
-				echo "<div class=\"alert alert-success\">Utilizador actualizado com sucesso</div> ";
+				tools::notify_add("Dados de utilizador gravados com sucesso", "success");				
 
 		//buscar user id
 			$sql = "SELECT MAX(id) AS id FROM users";
