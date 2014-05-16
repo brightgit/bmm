@@ -2,6 +2,34 @@
 //system-wide functions goes here
 class Tools {
 
+	//adiciona mensagens a apresentar ao user em session
+    public function notify_add($message, $type = "info"){
+
+        $_SESSION["notify"]["messages"][] = array("message" => $message, "type" => $type, "already_displayed" => "false");
+    }
+
+    //lista as mensagens a apresentar ao user para serem usadas via script
+    public function notify_list(){
+
+        if(!empty($_SESSION["notify"]["messages"])){
+
+
+            echo "<ul id=\"notify-messages\">";
+            foreach ($_SESSION["notify"]["messages"] as $message) {
+                echo "<li data-type=\"".$message["type"]."\">" . $message["message"] . "</li>";
+            }
+            echo "</ul>";
+        }
+
+        //limpar o queue de notifications
+        self::notify_empty();
+
+    }
+
+    public function notify_empty(){
+        $_SESSION["notify"]["messages"] = array();
+    }
+
 	static function is_email($email){
 	    return preg_match("/^[_a-z0-9-]+(\.[_a-z0-9+-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i", $email);
 	}

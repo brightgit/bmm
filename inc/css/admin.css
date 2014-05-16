@@ -1383,3 +1383,40 @@ div.table-actions{
 	-o-transition: all 0.25s ease-out;
 	transition: all 0.25s ease-out;
 }
+
+/* noty styles - notification messages */
+div#messages{
+	display: none;
+}
+.noty_bar{
+	background: #f8f8f8;
+	margin: 0px 0px 10px 0px;
+	box-shadow: 1px 0px 1px #333;
+}
+
+.noty_message{
+	padding: 2px !important;
+	text-align: left !important;
+}
+
+.noty_message .dashed{
+	padding: 10px;
+}
+
+.noty_text{
+	color: #338c9c;
+	font-size: 11px;
+}
+
+.noty_type_success{
+	border-left: 4px solid #a0af38;
+}
+
+.noty_type_info{
+	border-left: 4px solid #5bc0de;
+}
+
+.noty_type_error{
+	border-left: 4px solid #d9534f;
+}
+/* noty styles - notification messages */

@@ -131,6 +131,10 @@ $tools = $core->getTools();
 </div>
 </div>
 
+<div id="messages">
+	<?php echo Tools::notify_list() ?>
+</div>
+
 <?php } ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="../inc/libs/jquery-ui/jquery-ui-1.8.16.custom.min.js"></script>
@@ -138,6 +142,9 @@ $tools = $core->getTools();
 <script type="text/javascript" src="../inc/js/tablesorter.pager.js"></script>
 <script type="text/javascript" src="../inc/js/visualize.jQuery.js"></script>
 <script type="text/javascript" src="../inc/js/jquery.dataTables.min.js"></script>
+<!-- noty -->
+<script type="text/javascript" src="../inc/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+<script type="text/javascript" src="../inc/js/noty/themes/default.js"></script>
 <script type="text/javascript" src="../inc/js/bootstrap/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="../inc/js/fancybox/jquery.fancybox.pack.js"></script>
 <script type="text/javascript" src="../inc/libs/ckeditor/ckeditor.js"></script>

@@ -102,6 +102,8 @@ class Settings{
 
 		}
 
+		Tools::notify_add("Informação sobre remetentes actualizada com sucesso");
+
 	}
 
 	function bind_from_post(){

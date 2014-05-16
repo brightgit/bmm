@@ -53,6 +53,42 @@ function details_in_popup(link, div_id){
 //Loading jQuery
 $(document).ready(function(){
 
+	$.noty.defaults = {
+	    layout: 'topRight',
+	    theme: 'defaultTheme',
+	    type: 'alert',
+	    text: '', // can be html or string
+	    dismissQueue: true, // If you want to use queue feature set this true
+	    template: '<div class="noty_message"><div class="dashed"><span class="noty_text"></span><div class="noty_close"></div></div></div>',
+	    animation: {
+	        open: {height: 'toggle'},
+	        close: {height: 'toggle'},
+	        easing: 'swing',
+	        speed: 500 // opening & closing animation speed
+	    },
+	    timeout: false, // delay for closing event. Set false for sticky notifications
+	    force: false, // adds notification to the beginning of queue when set to true
+	    modal: false,
+	    maxVisible: 5, // you can set max visible notification for dismissQueue true option,
+	    killer: false, // for close all notifications before show
+	    closeWith: ['click'], // ['click', 'button', 'hover']
+	    callback: {
+	        onShow: function() {},
+	        afterShow: function() {},
+	        onClose: function() {},
+	        afterClose: function() {}
+	    },
+	    buttons: false // an array of buttons
+	};
+
+	//notificacoes
+	$("#notify-messages li").each(function(){
+		noty({
+			text: $(this).html(),
+			type: $(this).data("type")
+		});
+	})
+
 	//confirm no delete de links
 	$(".link-confirm").click( function(){
 
@@ -69,21 +105,9 @@ $(document).ready(function(){
 
 		counter_input ++;
 		var parent_row = $(this).parent().parent(); //tr
-		var full_row = $("table.senders-table").find("tr:nth-child(2)").clone();
-
-		//clear inputs
-		var input = full_row.find("input");
-
-		input.each(function(index){
-			
-			$(input[index]).attr("value", "");
-			$(input[index]).attr("name", $(input[index]).attr("name").replace(/\[([0-9]*)\]/, "[new]["+counter_input+"]"));
-			$(input[index]).removeClass("seamless-input");
-		})
-
+		var full_row = '<tr><td><input type="text" name="sender[new]['+counter_input+'][email]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][email_from]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][return_path]" value=""></td><td><div class="table-actions"><a class="link-confirm btn btn-small btn-danger" href="?mod=settings&amp;act=delete_sender[new]&amp;id=17"><i class="icon-white icon-remove"></i></a></div></td></tr>';
 		
-		
-		full_row.insertBefore($(parent_row));
+		$(full_row).insertBefore($(parent_row));
 	})
 
 	$(".seamless-input").click(function(){
