@@ -32,7 +32,7 @@ $emails_from = array( $core->settings->sender_email_from => $core->settings->sen
 
 
 
-$query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.email, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.user_id
+$query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.email, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
 	from mensagens_enviadas 
 	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
 	inner join subscribers on mensagens_enviadas.destino = subscribers.id 
@@ -54,7 +54,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		//echo '1';
 		//Mensagem
 		$to = array($mensagem->email => $mensagem->email);
-		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->envio_id);
+		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->envio_id, $mensagem->url);
 
 		//Meter nos stats
 		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";

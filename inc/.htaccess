@@ -1,2 +1,2 @@
 RewriteEngine On
-RewriteRule ^visualize_news.php/([0-9]*)/([0-9]*)/(.*)$ visualize_news.php?client=$1&mensagem_id=$2&email=$3
+RewriteRule ^visualize_news.php/([0-9]*)/([a-zA-Z0-9-_]*)/(.*)$ visualize_news.php?envio_id=$1&url=$2&email=$3
