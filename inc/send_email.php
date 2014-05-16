@@ -32,12 +32,6 @@ $emails_from = array( $core->settings->sender_email_from => $core->settings->sen
 
 
 
-$query = "SELECT mensagens_enviadas.*, `subscribers`.`nome`, `subscribers`.`email` 
-FROM `mensagens_enviadas` 
-LEFT JOIN `subscribers` on `subscribers`.`id` = `mensagens_enviadas`.`destino`  
-WHERE `output` = 3 
-	LIMIT 100"; //Limitado a 100 emails
-
 $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.email, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.user_id
 	from mensagens_enviadas 
 	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
@@ -60,7 +54,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		//echo '1';
 		//Mensagem
 		$to = array($mensagem->email => $mensagem->email);
-		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->mensagem_id);
+		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->envio_id);
 
 		//Meter nos stats
 		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";
@@ -150,21 +144,21 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		$bcsv = new bcsv();
 
 
-		$query = "SELECT *, subscribers.email, mensagens.user_id 
+		$query = "SELECT mensagens_enviadas.*, subscribers.email, envios.user_id
 			FROM mensagens_enviadas 
 			LEFT JOIN subscribers on mensagens_enviadas.destino = subscribers.id 
-			LEFT JOIN mensagens on mensagens.id = mensagens_enviadas.mensagem_id 
+			left join envios on envios.id = mensagens_enviadas.envio_id
 			WHERE `mensagens_enviadas`.`id` = ".$mensagem->id;
 		$res2 = mysql_query($query) or die( mysql_error() );
 		$row = mysql_fetch_object( $res2 );
 
-
+		//echo $query;
 		//$client_id = BRIGHT_mail_feedback::get_client_id();
 		$bcsv->initiate( $row->user_id );
 
 		$bcsv->open_enviadas("write", $mensagem->envio_id);
 
-		$insert["mail_id"] = $row->mail_id;
+		$insert["mail_id"] = $row->destino;
 
 		$insert["email"] = $row->email;
 
@@ -180,7 +174,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		$bcsv->add_mensagem_enviada( $insert );
 		$bcsv->close();
 
-		//$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
+		$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
 		//echo $query;
 		//echo $query . "<hr />";
 		if( mysql_query($query) ) {

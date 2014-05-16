@@ -68,9 +68,8 @@ class ViewMass_email {
 			$query = "SELECT * FROM `mensagens` WHERE `id`='".$_POST['mensagem_id']."'";
 			$res = mysql_query($query) or die(mysql_error());
 			if($mensagem = mysql_fetch_object($res)){
-
 				//Adicionar envio
-				$query = "insert into envios values(null, '".$mensagem->id."', now())";
+				$query = "insert into envios values(null, '".$mensagem->id."', '".$_SESSION["user"]->id."', now())";
 				mysql_query($query) or die( mysql_error() );
 				$res_envio = mysql_query("select * from envios order by id desc limit 1") or die( mysql_error() );
 				$envio = mysql_fetch_array($res_envio);

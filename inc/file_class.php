@@ -39,7 +39,7 @@ class bcsv extends BRIGHT_mail_feedback
 	public function initiate( $user_id = FALSE ){
 
 
-		$query = "select * from settings where user_id = '".$user_id."'";
+		$query = "select * from users where id = '".$user_id."'";
 
 		$res = mysql_query($query) or die( mysql_error() );
 
@@ -144,14 +144,16 @@ class bcsv extends BRIGHT_mail_feedback
 	public function open_enviadas( $action = "write", $envio_id = FALSE ){
 
 		//vou precisar o dominio e data do envio
-		$query = "select envios.date_sent, mensagens.id, settings.sender_host 
+		$query = "select envios.date_sent, mensagens.id, users.sender_host 
 			from envios
 			inner join mensagens on envios.mensagem_id = mensagens.id
-			inner join 	settings on settings.user_id = mensagens.user_id
+			inner join 	users on users.id = envios.user_id
 			where envios.id = '".$envio_id."'";
+		
 		//echo "<hr />".$query."<hr />";
 		//die("afsdf");
 		//exit("fdsaf");
+		
 		$res = mysql_query($query) or die( mysql_error() );
 
 		$row = mysql_fetch_array($res);
