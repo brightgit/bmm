@@ -8,135 +8,67 @@ date_default_timezone_set("Europe/Lisbon");
 //TODO: Start the session or include core
 $core = new Core('bo');
 
+//Logs an aplication erro
+function log_error( $e )
+{
+	$query = "insert into send_email_errors set error = '".$e."'";
+	$res = mysql_query($query);
+
+	//Vamos enviar email?
+	$query = "select * from send_email_errors";
+
+	if ( is_int( mysql_num_rows( mysql_query($query) ) / 100 ) ) {
+		mail("hugo.silva@bright.pt", "BMM - 100 erros", "Dominio: ".$_SERVER["HTTP_HOST"]);
+	}
+	die("");
+	exit("");
+}
+
 #Settings
 #API KEY para este dominio
-$api_key = $core->settings->sender_api_key;
+#$api_key = $core->settings->sender_api_key;
 
 $emails_from = array( $core->settings->sender_email_from => $core->settings->sender_name);
 
-switch ($_SERVER["HTTP_HOST"]) {
-	case 'localhost':
-		require_once("libs/Swift-4.2.2/lib/swift_required.php");
-		break;
-	
-	default:
-		require_once($core->settings->swift_absolute_path);
-		break;
-}
 
 
-
-#O nosso servidor não tem esta função
-if (!function_exists('http_response_code')) {
-	function http_response_code($code = NULL) {
-
-		if ($code !== NULL) {
-
-			switch ($code) {
-				case 100: $text = 'Continue'; break;
-				case 101: $text = 'Switching Protocols'; break;
-				case 200: $text = 'OK'; break;
-				case 201: $text = 'Created'; break;
-				case 202: $text = 'Accepted'; break;
-				case 203: $text = 'Non-Authoritative Information'; break;
-				case 204: $text = 'No Content'; break;
-				case 205: $text = 'Reset Content'; break;
-				case 206: $text = 'Partial Content'; break;
-				case 300: $text = 'Multiple Choices'; break;
-				case 301: $text = 'Moved Permanently'; break;
-				case 302: $text = 'Moved Temporarily'; break;
-				case 303: $text = 'See Other'; break;
-				case 304: $text = 'Not Modified'; break;
-				case 305: $text = 'Use Proxy'; break;
-				case 400: $text = 'Bad Request'; break;
-				case 401: $text = 'Unauthorized'; break;
-				case 402: $text = 'Payment Required'; break;
-				case 403: $text = 'Forbidden'; break;
-				case 404: $text = 'Not Found'; break;
-				case 405: $text = 'Method Not Allowed'; break;
-				case 406: $text = 'Not Acceptable'; break;
-				case 407: $text = 'Proxy Authentication Required'; break;
-				case 408: $text = 'Request Time-out'; break;
-				case 409: $text = 'Conflict'; break;
-				case 410: $text = 'Gone'; break;
-				case 411: $text = 'Length Required'; break;
-				case 412: $text = 'Precondition Failed'; break;
-				case 413: $text = 'Request Entity Too Large'; break;
-				case 414: $text = 'Request-URI Too Large'; break;
-				case 415: $text = 'Unsupported Media Type'; break;
-				case 500: $text = 'Internal Server Error'; break;
-				case 501: $text = 'Not Implemented'; break;
-				case 502: $text = 'Bad Gateway'; break;
-				case 503: $text = 'Service Unavailable'; break;
-				case 504: $text = 'Gateway Time-out'; break;
-				case 505: $text = 'HTTP Version not supported'; break;
-				default:
-				$text = '';
-				break;
-			}
-
-			$protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
-
-			header($protocol . ' ' . $code . ' ' . $text);
-
-			$GLOBALS['http_response_code'] = $code;
-
-		} else {
-
-			$code = (isset($GLOBALS['http_response_code']) ? $GLOBALS['http_response_code'] : 200);
-
-		}
-
-		return $code;
-
-	}
-}
-
-
-#Settings do swift
-$transport = Swift_SmtpTransport::newInstance($core->settings->sender_host, $core->settings->sender_smtp_port)
-			->setUsername($core->settings->sender_username)
-			->setPassword($core->settings->sender_password)
-			;
-
-$mailer = Swift_Mailer::newInstance($transport);
-$mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(100));
-$mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(100, 5));
-
-if( !isset($_GET['api']) || $_GET['api'] != $api_key ){
-	http_response_code(404);
-	die('');
-}
-
-
-$query = "SELECT mensagens_enviadas.*, `subscribers`.`nome`, `subscribers`.`email` 
-FROM `mensagens_enviadas` 
-LEFT JOIN `subscribers` on `subscribers`.`id` = `mensagens_enviadas`.`destino`  
-WHERE `output` = 3 
-	LIMIT 100"; //Limitado a 100 emails
-	
+$query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.email, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
+	from mensagens_enviadas 
+	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
+	inner join subscribers on mensagens_enviadas.destino = subscribers.id 
+	where mensagens.id is not null
+	limit 100
+	";
 
 	$res = mysql_query( $query ) or die( mysql_error() );
-	if(mysql_num_rows($res) == 0 ){
-		http_response_code(207);
-		die("");
+	if(mysql_num_rows($res) == 0 ){	//No messages to be sent.
+		die("Sem mensagens em espera.");
 	}
 
 	//adicionar doctype devido a Outlook
 	$doctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
 
+
+
 	while( $mensagem = mysql_fetch_object($res) ) {
 		//echo '1';
 		//Mensagem
 		$to = array($mensagem->email => $mensagem->email);
-		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->mensagem_id);
+		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->envio_id, $mensagem->url);
 
-		//incrementar no enviados
-		$query = "UPDATE stats SET mensagens_enviadas = mensagens_enviadas + 1";
-		mysql_query($query);
+		//Meter nos stats
+		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";
+		$res_stats = mysql_query( $query ) or log_error( mysql_error().$query );
+		if ( $row = mysql_fetch_array($res_stats) ) {	//temos vamos incrementar
+			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row["id"]."'";
+			mysql_query($query) or log_error( mysql_error().$query );
+		}else{
+			$query = "insert into stats values (NULL, 1, 0, month( now() ), year( now() ) )";
+			mysql_query($query) or log_error( mysql_error().$query );
+		}
 
 		//Mandrill
-		if (true) {
+		if (false) {
 			require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
@@ -197,7 +129,7 @@ WHERE `output` = 3
 
 			    //inactivar, foi marcado como spam
 			    if($reject == "spam"){
-			    	$spam_query = "UPDATE subscribers SET is_active = 0, requested_exclusion = 1, date_updated = NOW() WHERE email = '".$mensagem->email."'";
+			    	$spam_query = "UPDATE subscribers SET is_active = 0, requested_exclusion = 0, date_updated = NOW() WHERE email = '".$mensagem->email."'";
 			    	mysql_query($spam_query);
 			    }
 			    	
@@ -207,103 +139,50 @@ WHERE `output` = 3
 
 
 		}
-		//End Mandrill
-		else{
+		//$sent_mandrill = true;
+		require_once("file_class.php");
+		$bcsv = new bcsv();
 
-			$message = Swift_Message::newInstance()
-			->setSubject( $mensagem->assunto )
-			->setFrom( $emails_from )
-			->setTo($to)
-			->addPart($mensagem->mensagem)
-			->setBody( $doctype.$html_body, 'text/html')
-			->setReturnPath($core->settings->return_path)
-			->setCharset('utf-8');
 
-			$headers = $message->getHeaders();
+		$query = "SELECT mensagens_enviadas.*, subscribers.email, envios.user_id
+			FROM mensagens_enviadas 
+			LEFT JOIN subscribers on mensagens_enviadas.destino = subscribers.id 
+			left join envios on envios.id = mensagens_enviadas.envio_id
+			WHERE `mensagens_enviadas`.`id` = ".$mensagem->id;
+		$res2 = mysql_query($query) or die( mysql_error() );
+		$row = mysql_fetch_object( $res2 );
 
-			$headers->get('Subject')->setValue($mensagem->assunto);
-			$headers->get('Content-Type')->setvalue('text/html');
-			$headers->get('Content-Type')->setParameter('charset', 'utf-8');
-			$headers->get('Date')->setTimestamp(time());
-			$headers->get('From')->setNameAddresses($emails_from);
-			$headers->get('To')->setNameAddresses($to);
-			$mail_id = time().'.'.md5($mensagem->email) . '@'.$core->settings->sender_domain;
-			$headers->get('Message-ID')->setId($mail_id);
-			$headers->get('Return-Path')->setAddress($core->settings->return_path);
+		//echo $query;
+		//$client_id = BRIGHT_mail_feedback::get_client_id();
+		$bcsv->initiate( $row->user_id );
 
-			$send_mail = $mailer->send($message);
-		}
-		
+		$bcsv->open_enviadas("write", $mensagem->envio_id);
 
-		if ($send_mail || $sent_mandrill) //temporário até determinar o problema com o Mandrill
+		$insert["mail_id"] = $row->destino;
+
+		$insert["email"] = $row->email;
+
+		$insert["hora"] = $row->hora;
+
+		if ( $sent_mandrill)
 		{
-			require_once("file_class.php");
-			$bcsv = new bcsv();
-
-
-			$query = "SELECT *, subscribers.email FROM mensagens_enviadas LEFT JOIN subscribers on mensagens_enviadas.destino = subscribers.id WHERE `mensagens_enviadas`.`id` = ".$mensagem->id;
-			$res2 = mysql_query($query) or die( mysql_error() );
-			$row = mysql_fetch_object( $res2 );
-
-			$client_id = BRIGHT_mail_feedback::get_client_id();
-			$bcsv->initiate( $client_id );
-
-			$log_info["client"] = $client_id;
-			$log_info["mensagem_id"] = $mensagem->mensagem_id;
-
-			$bcsv->open_enviadas("write", $log_info);
-
-			$insert["mail_id"] = $row->mail_id;
-
-			$insert["email"] = $row->email;
-
-			$insert["hora"] = $row->hora;
-
 			$insert["output"] = "Sucesso";
-			$bcsv->add_mensagem_enviada( $insert );
-			$bcsv->close();
-
-			$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
-			//echo $query;
-			//echo $query . "<hr />";
-			if( mysql_query($query) ) {
-				
-			}else{
-				//http_response_code(500);
-				//die("");
-			}
-		}
-		else
-		{
-
-			require_once("file_class.client.php");
-			$bcsv = new bcsv_client();
-
-
-			$query = "SELECT *, subscribers.email FROM mensagens_enviadas LEFT JOIN subscribers on mensagens_enviadas.destino = subscribers.id WHERE `mensagens_enviadas`.`id` = ".$mensagem->id;
-			$res2 = mysql_query($query) or die( mysql_error() );
-			$row = mysql_fetch_object( $res2 );
-
-			$bcsv->initiate( $row->mensagem_id );
-			$insert["mail_id"] = $row->mail_id;
-
-			$insert["email"] = $row->email;
-
-			$insert["hora"] = $row->hora;
-
+		}else{
 			$insert["output"] = "Erro no envio";
-			$bcsv->add_mensagem_enviada( $insert );
-			$bcsv->close();
-
-			$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
-			if( mysql_query($query) ) {
-				
-			}else{
-				//http_response_code(500);
-				//die("");
-			}
+			
 		}
+		$bcsv->add_mensagem_enviada( $insert );
+		$bcsv->close();
 
+		$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
+		//echo $query;
+		//echo $query . "<hr />";
+		if( mysql_query($query) ) {
+			
+		}else{
+			//http_response_code(500);
+			//die("");
+		}
 		unset($message);
 
 	}

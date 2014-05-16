@@ -1,5 +1,7 @@
 <?php
 
+//var_dump($_GET);
+
 //ini settings
 header("Content-Type: text/html; charset=utf-8");
 error_reporting(E_ALL);
@@ -12,7 +14,9 @@ require_once('Core.php');
 $core = new Core('bo');
 
 //get the message
-$query = "SELECT mensagem_browser, assunto FROM `mensagens` WHERE id = {$_GET["mensagem_id"]}";
+$query = "SELECT mensagem_browser, assunto 
+	FROM `mensagens`
+	left join envios on envios.mensagem_id = mensagens.id WHERE envios.id = {$_GET["envio_id"]}";
 //echo $query;
 
 //var_dump( $_GET );
@@ -33,8 +37,8 @@ if( !$news ){
 	$feedback = new BRIGHT_mail_feedback;
 
 	//if there's tracking information, register
-	if(!empty($_GET["client"]) && !empty($_GET["mensagem_id"]) && !empty($_GET["email"]))
-		$feedback->insert(); ?>
+	if(!empty($_GET["envio_id"]) && !empty($_GET["url"]) && !empty($_GET["email"]))
+		$feedback->insert( $_GET[""] ); ?>
 
 	<html>
 		<head>

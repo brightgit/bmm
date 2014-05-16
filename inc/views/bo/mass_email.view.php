@@ -61,7 +61,6 @@ class ViewMass_email {
 		//existindo grupos
 		if(count($grupos) > 0){
 
-
 			//partir para SQL
 			$grupos_imploded = implode(",", $grupos);
 
@@ -69,9 +68,16 @@ class ViewMass_email {
 			$query = "SELECT * FROM `mensagens` WHERE `id`='".$_POST['mensagem_id']."'";
 			$res = mysql_query($query) or die(mysql_error());
 			if($mensagem = mysql_fetch_object($res)){
+				//Adicionar envio
+				$query = "insert into envios values(null, '".$mensagem->id."', '".$_SESSION["user"]->id."', now())";
+				mysql_query($query) or die( mysql_error() );
+				$res_envio = mysql_query("select * from envios order by id desc limit 1") or die( mysql_error() );
+				$envio = mysql_fetch_array($res_envio);
 
-				BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
-				$query ="INSERT INTO `mensagens_enviadas` (SELECT NULL, ".$mensagem->id.", '', '".$mensagem->assunto."', '".addslashes($mensagem->mensagem)."', '".addslashes($mensagem->mensagem_text)."', `id_subscriber`, NULL, 3 FROM `subscriber_by_cat` left join subscribers on subscribers.id = subscriber_by_cat.id_subscriber WHERE `subscriber_by_cat`.`id_categoria` IN (".$grupos_imploded.") and subscribers.is_active = 1 group by subscriber_by_cat.id_subscriber)";
+				//BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
+				$query ="INSERT INTO `mensagens_enviadas` (SELECT NULL, ".$mensagem->id.", '".$envio["id"]."', `id_subscriber`, NULL, 3 FROM `subscriber_by_cat` inner join subscribers on subscribers.id = subscriber_by_cat.id_subscriber WHERE `subscriber_by_cat`.`id_categoria` IN (".$grupos_imploded.") and subscribers.is_active = 1 group by subscriber_by_cat.id_subscriber)";
+
+
 				//echo "<textarea>" . $query . "</textarea>";
 				$totals = mysql_query( $query ) or die( mysql_error() );
 				$total_num = mysql_affected_rows();

@@ -1,6 +1,9 @@
 <?php
 
-	$abs_path = base_path();	
+	//$abs_path = "/home/pmenet/public_html/holmes/bmm";
+	//$abs_path = "/Users/bright/Documents/htdocs/pme24/bmm";
+	//$abs_path = "C:/xampp/htdocs/bmm";
+	$abs_path = base_path();
 
 	//requires
 	require_once($abs_path . "/inc/modules/settings.mod.php");
@@ -48,9 +51,9 @@
 		public static $db_password = "Bright#$91";
 		public static $db_name = "brightmi_mail_stats";
 		public $email;
-		public $client;
+		public $envio_id;
 		public $ip;
-		public $mensagem_id;
+		public $url_newsletter;
 		public $user_agent;
 
 		function __construct(){
@@ -61,8 +64,8 @@
 
 			require_once(base_path()."/inc/file_class.php");
 			$this->email = strip_tags($_GET['email']);
-			$this->mensagem_id = strip_tags($_GET['mensagem_id']);
-			$this->client = intval( strip_tags($_GET["client"]) );
+			$this->url_newsletter = strip_tags($_GET['url']);
+			$this->envio_id = intval( strip_tags($_GET["envio_id"]) );
 			$this->ip = $_SERVER["REMOTE_ADDR"];
 			$this->user_agent = $_SERVER['HTTP_USER_AGENT'];
 			$this->referer = $_SERVER["HTTP_REFERER"];
@@ -116,20 +119,25 @@
 				mail("franco.silva@bright.pt", "Erro Bright Mail Module", "Ocorreu um erro na ligação à db. Verificar MYSQL.");
 		}
 
-		function insert(){
+		function insert(  ){
+
+			$query = "select users.* from envios
+				left join users on users.id = envios.user_id
+				 where envios.id = '".$this->envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$row = mysql_fetch_array($res);
+
+			//echo '<hr />';
+			//echo $query;
+
 
 			$bcsv = new bcsv();
-			$bcsv->initiate();
+			$bcsv->initiate( $row["id"] );
 
 
-			$pdo = self::db_connect();
-			$sql = "SELECT * FROM `clients` where `id` = '".$this->client."'";
 
-			$query = $pdo->query( $sql );
-			$client = $query->fetchObject();
-
-			$visit[] = $client->name;	//Client
-			$visit[] = $this->mensagem_id;	//Id da mensagem
+			$visit[] = $row["sender_host"];	//host
+			$visit[] = $row["id"];	//Id do envio
 			$visit[] = $this->email;	//Email
 			$visit[] = $this->user_agent;	//user_agent
 			$visit[] = $this->ip;	//ip
@@ -140,12 +148,8 @@
 
 			//var_dump($this);
 
-			//adicionado 16/07 . estava a crashar o feedback
-			$log_info["client"] =  (int) $this->client;
-			$log_info["mensagem_id"] = (int) $this->mensagem_id;
 
-
-			$bcsv->open_visits( "write", $log_info);
+			$bcsv->open_visits( "write", $this->envio_id);
 
 			$bcsv->add_visit( $visit );
 			$bcsv->close();
@@ -189,28 +193,26 @@
 		}
 
 		//recebe uma string de texto e injecta os parametros necessários a fazer o tracking
-		static function inject($html_body, $email, $mensagem_id){
+		static function inject($html_body, $email, $envio_id, $url){
 			
 			//remove token
 			$salt = "bright";
 			$remove_token = md5($email.$salt);
-			$client_id = self::get_client_id();
 
-			if(is_numeric($client_id)){
+			if(is_numeric($envio_id)){
 
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
-				//$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."?client=".$client_id."&mensagem_id=".$mensagem_id."&email=".$email."\">ver no browser</a>", $html_body);
-				$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$client_id."/".$mensagem_id."/".$email."\">clique aqui para ver no browser</a>", $html_body);
+				$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
 				//cria o link de remoção automática
 				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."\">remover</a>", $html_body);
 
 
 				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
-				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?client='.$client_id.'&amp;mensagem_id='.$mensagem_id.'&amp;email='.$email.'&url=', $html_body);
+				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
 
 				//cria a imagem escondida
-				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
+				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".self::$url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
 
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
 				return $html_body;
@@ -257,15 +259,25 @@
 			$url = substr($request, strpos($request, "url"), strlen($request));
 			$url = str_replace("url=", "", $url);
 
+			$query = "select users.* from envios
+				left join users on users.id = envios.user_id
+				 where envios.id = '".$this->envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$row = mysql_fetch_array($res);
+
+			//echo '<hr />';
+			//echo $query;
+
+
 			$bcsv = new bcsv();
-			$bcsv->initiate( $_GET["client"] );
-			$bcsv->open_clicks( "write", $_GET );
+			$bcsv->initiate( $row["id"] );
+			$bcsv->open_clicks( "write", $_GET["envio_id"] );
 
 
-			$client_id = $_GET["client"];
-			$message_id = $_GET["mensagem_id"];
+			//$client_id = $id["id"];
+			//$message_id = $_GET["mensagem_id"];
 			$click_a[] = $_GET["email"];
-			$click_a[] = $_GET["url"];
+			$click_a[] = $_GET["url_f"];
 			$click_a[] = date("Y-m-d H:m");
 			$click_a[] = $_SERVER["HTTP_REFERER"];
 			$click_a[] = $_SERVER["REMOTE_ADDR"];
@@ -273,11 +285,11 @@
 			$bcsv->add_click( $click_a );
 			$bcsv->close();
 
-			$bcsv->open_visits( "write", $_GET );
+			$bcsv->open_visits( "write", $_GET["envio_id"] );
 
 
 			$visit[] = $_SERVER["SERVER_NAME"];	//Client aproximation
-			$visit[] = $_GET["mensagem_id"];	//Id da mensagem
+			$visit[] = $_GET["envio_id"];	//Id da mensagem
 			$visit[] = $_GET["email"];	//Email
 			$visit[] = $this->user_agent;	//user_agent
 			$visit[] = $this->ip;	//ip
@@ -289,7 +301,7 @@
 
 
 
-			header( "Location: ".$url );
+			header( "Location: ".$_GET["url_f"] );
 		}
 
 		function render_fake_image(){
@@ -587,15 +599,4 @@
 
 	}
 
-	// function base_path(){
-	// 	//chroot/home/brightmi/brightminds.pt/html/bmm/ « isto tem de ser o base path - todos têm chroot/home/<conta_unix>/<domain>/html/<pasta onde está o bmm>
-	// 	$homedir = getcwd();
-	// 	$base_dir = str_replace('/admin', "", $homedir);
-
-	// 	//implementar o base_path das settings
-	// 	$base_dir = "/Users/bright/Documents/htdocs/bmm";
-
-	// 	return $base_dir."/";
-	// }
-	
 ?>
