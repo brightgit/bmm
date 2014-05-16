@@ -53,6 +53,17 @@ function details_in_popup(link, div_id){
 //Loading jQuery
 $(document).ready(function(){
 
+	//confirm no delete de links
+	$(".link-confirm").click( function(){
+
+		$("#multiple-actions-confirmation").modal();
+		event.preventDefault();
+		var form = $(this);
+		$("#confirm").click( function(){
+			window.location = form.attr("href");
+		});
+	} );
+
 	var counter_input = 0;
 	$(".btn-sender-add").click(function(){
 

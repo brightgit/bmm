@@ -69,55 +69,69 @@ $tools = $core->getTools();
 						$query = "SELECT id FROM mensagens_enviadas";
 						$res = mysql_query($query);
 						$num_espera = mysql_num_rows($res);
-						 ?>
+						?>
 						<span class="btn btn-inverse disabled font-10">v2.1.0</span>
 						<span class="btn btn-inverse disabled font-10">Em Espera: <?php echo $num_espera; ?></span>
 
 						<!-- definicoes -->
 						<?php if($core->user->is_admin): ?>
 						<a class="btn btn-inverse text-white font-10" href='?mod=settings'><i class="icon-white icon-cog"></i> <?php echo _('Defini&ccedil;&otilde;es');?></a>
-						<?php endif; ?>
+					<?php endif; ?>
 
-						<!-- force send DEVELOPER ONLY -->
-						<?php if($core->user->is_admin && false): ?>
-						<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/send_email.php?api=<?php echo $core->settings->sender_api_key ?>"  class="btn btn-inverse	 text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> For&ccedil;ar envio</a>
-						<?php endif; ?>
+					<!-- force send DEVELOPER ONLY -->
+					<?php if($core->user->is_admin && false): ?>
+					<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/send_email.php?api=<?php echo $core->settings->sender_api_key ?>"  class="btn btn-inverse	 text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> For&ccedil;ar envio</a>
+				<?php endif; ?>
 
-						<!-- check bounces DEVELOPER ONLY -->
-						<?php if($core->user->is_admin  && false): ?>
-						<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/check_bounces.php" class="btn btn-inverse text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> 	Bounces</a>
-						<?php endif; ?>
-						<a class="btn btn-danger text-white font-10" href='?logout'><i class="icon-white icon-off"></i> <?php echo _('Logout');?></a>
-					</div>
-				</div>
-			</div>
-			<div class="clear"></div>
-			<div class="navbar">
-				<div class="navbar-inner">
-					<ul class="nav">
-						<li <?php if ( $_GET['mod']=='dashboard' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=dashboard"><?php echo _('Dashboard');?></a></li>
-						<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='categorias') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=categorias">Grupos</a></li>
-						<li <?php if ( $_GET['mod']=='newsletter' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=newsletter"><?php echo _('Subscritores');?></a></li>
-						<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='messages') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=messages">Newsletters</a></li>
-						<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='statistics') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=statistics">Estat&iacute;sticas</a></li>						
-						<?php if($core->user->is_admin): ?>
-						<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='utilizadores') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=utilizadores">Utilizadores</a></li>
-						<?php endif; ?>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="clear"></div>
-		<div class="content"><?php $core->getMod(); ?></div>	
-		<div class="footer">
-			Powered by
-			<a class="bright-link" href="http://www.bright.pt/" target="_blank">Bright</a>
-			&amp;
-			<a class="digidoc-link" href="http://digidoc.pt/" target="_blank">Digidoc</a>
+				<!-- check bounces DEVELOPER ONLY -->
+				<?php if($core->user->is_admin  && false): ?>
+				<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/check_bounces.php" class="btn btn-inverse text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> 	Bounces</a>
+			<?php endif; ?>
+			<a class="btn btn-danger text-white font-10" href='?logout'><i class="icon-white icon-off"></i> <?php echo _('Logout');?></a>
 		</div>
 	</div>
+</div>
+<div class="clear"></div>
+<div class="navbar">
+	<div class="navbar-inner">
+		<ul class="nav">
+			<li <?php if ( $_GET['mod']=='dashboard' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=dashboard"><?php echo _('Dashboard');?></a></li>
+			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='categorias') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=categorias">Grupos</a></li>
+			<li <?php if ( $_GET['mod']=='newsletter' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=newsletter"><?php echo _('Subscritores');?></a></li>
+			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='messages') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=messages">Newsletters</a></li>
+			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='statistics') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=statistics">Estat&iacute;sticas</a></li>						
+			<?php if($core->user->is_admin): ?>
+			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='utilizadores') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=utilizadores">Utilizadores</a></li>
+		<?php endif; ?>
+	</ul>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+<div class="content"><?php $core->getMod(); ?></div>
+<div id="multiple-actions-confirmation" class="modal hide fade in">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3>Por favor confirme a acção</h3>
+	</div>
+	<div class="modal-body">
+		<p>Tem a certeza que pretende proceder?</p>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-inverse" data-dismiss="modal">Cancelar</button>
+		<button class="btn btn-danger" id="confirm">Confirmar</button>
+	</div>
+</div>
+</div>
+<div class="footer">
+	Powered by
+	<a class="bright-link" href="http://www.bright.pt/" target="_blank">Bright</a>
+	&amp;
+	<a class="digidoc-link" href="http://digidoc.pt/" target="_blank">Digidoc</a>
+</div>
+</div>
 
-	<?php } ?>
+<?php } ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="../inc/libs/jquery-ui/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="../inc/js/tablesort.js"></script>

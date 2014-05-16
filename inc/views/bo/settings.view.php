@@ -63,7 +63,7 @@ class ViewSettings{
 							<td><input type="text" name="sender[<?php echo $sender->id ?>][return_path]" class="seamless-input" value="<?php echo $sender->return_path ?>" /></td>
 							<td>
 								<div class="table-actions">
-									<a class="btn btn-small btn-danger" href="?mod=settings&amp;act=delete_sender&amp;id=<?php echo $sender->id ?>"><i class="icon-white icon-remove"></i></a>
+									<a class="link-confirm btn btn-small btn-danger" href="?mod=settings&amp;act=delete_sender&amp;id=<?php echo $sender->id ?>"><i class="icon-white icon-remove"></i></a>
 								</div>
 							</td>
 						</tr>
