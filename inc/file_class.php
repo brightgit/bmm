@@ -86,7 +86,7 @@ class bcsv extends BRIGHT_mail_feedback
 		$row = mysql_fetch_array($res);
 
 		if ($row) {
-			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$row["id"].'.csv';
+			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$envio.'.csv';
 
 			$this->conn_file = $this->folder_prefix.$row["sender_host"].'/visits/' . $this->filename;
 
@@ -124,7 +124,7 @@ class bcsv extends BRIGHT_mail_feedback
 		$row = mysql_fetch_array($res);
 
 		if ($row) {
-			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$row["id"].'.csv';
+			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$envio_id.'.csv';
 
 			$this->conn_file = $this->folder_prefix.$row["sender_host"].'/clicks/' . $this->filename;
 
@@ -167,7 +167,7 @@ class bcsv extends BRIGHT_mail_feedback
 		$row = mysql_fetch_array($res);
 
 		if ($row) {
-			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$row["id"].'.csv';
+			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$envio_id.'.csv';
 
 			$this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/' . $this->filename;
 
