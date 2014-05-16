@@ -70,7 +70,7 @@ $tools = $core->getTools();
 						$res = mysql_query($query);
 						$num_espera = mysql_num_rows($res);
 						 ?>
-						<span class="btn btn-inverse disabled font-10">v2.1.0</span>
+						<span class="btn btn-inverse disabled font-10">v3.0.0</span>
 						<span class="btn btn-inverse disabled font-10">Em Espera: <?php echo $num_espera; ?></span>
 
 						<!-- definicoes -->

@@ -36,35 +36,34 @@ class bcsv extends BRIGHT_mail_feedback
 	}
 
 	//Esta função vai apenas para a página do cliente
-	public function initiate( $client = FALSE ){
+	public function initiate( $user_id = FALSE ){
 
-		$client = 26; //holmes
 
-		$pdo = self::db_connect();
-		//ir buscar o client
-		if ($client) {
-			$sql = "SELECT * FROM `clients` WHERE id = '".$client."'";
+		$query = "select * from settings where user_id = '".$user_id."'";
+
+		$res = mysql_query($query) or die( mysql_error() );
+
+		if( $row = mysql_fetch_array($res) ) {
+
 		}else{
-			$client_id = BRIGHT_mail_feedback::get_client_id();
-			$sql = "SELECT * FROM `clients` WHERE id = ".$client_id;
+			echo $query;
+			echo '<hr />';
+			die("Settings no found AXDDEE");
 		}
-		
-		$query = $pdo->query($sql);
-		$client = $query->fetchObject();
 
 		//echo $this->folder_prefix.$client->domain;
 
-		if (file_exists( $this->folder_prefix.$client->domain)) {
+		if (file_exists( $this->folder_prefix.$row["sender_host"])) {
 			
 		}else{
 
-			mkdir( $this->folder_prefix.$client->domain, 0777, true);
-			mkdir( $this->folder_prefix.$client->domain.'/visits', 0777, true);
-			mkdir( $this->folder_prefix.$client->domain.'/clicks', 0777, true);
-			mkdir( $this->folder_prefix.$client->domain.'/mensagens_enviadas', 0777, true);
+			mkdir( $this->folder_prefix.$row["sender_host"], 0777, true);
+			mkdir( $this->folder_prefix.$row["sender_host"].'/visits', 0777, true);
+			mkdir( $this->folder_prefix.$row["sender_host"].'/clicks', 0777, true);
+			mkdir( $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas', 0777, true);
 
 		}
-		$this->folder = $client->domain;
+		$this->folder = $row["sender_host"];
 
 	}
 
@@ -142,34 +141,35 @@ class bcsv extends BRIGHT_mail_feedback
 		fwrite( $this->conn, implode(",", $click_a)."\n" );
 	}
 
-	public function open_enviadas( $action = "write", $log_info = FALSE ){
+	public function open_enviadas( $action = "write", $envio_id = FALSE ){
 
-		if ($log_info) {
-			$sql = "SELECT * FROM newsletters where `id` = ".$log_info["mensagem_id"]." AND `client_id` = ".$log_info["client"];
-			$client = BRIGHT_mail_feedback::get_client($log_info["client"]);
-		}else{
-			$sql = "SELECT * FROM newsletters where `id` = ".$this->mensagem_id." AND `client_id` = ".$this->client;
-			$client = BRIGHT_mail_feedback::get_client($this->client);
-		}
+		//vou precisar o dominio e data do envio
+		$query = "select envios.date_sent, mensagens.id, settings.sender_host 
+			from envios
+			inner join mensagens on envios.mensagem_id = mensagens.id
+			inner join 	settings on settings.user_id = mensagens.user_id
+			where envios.id = '".$envio_id."'";
+		//echo "<hr />".$query."<hr />";
+		//die("afsdf");
+		//exit("fdsaf");
+		$res = mysql_query($query) or die( mysql_error() );
 
-		$pdo = self::db_connect();
-		$query = $pdo->query( $sql );
+		$row = mysql_fetch_array($res);
 
-		if ($query) {
-			$newsletter = $query->fetchObject();
+		if ($row) {
+			$this->filename = date("Ymd", strtotime( $row["date_sent"] ) ).'-'.$row["id"].'.csv';
 
-			$this->filename = date("Ymd", strtotime( $newsletter->date_in ) ).'-'.$newsletter->id.'.csv';
+			$this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/' . $this->filename;
 
-			$this->conn_file = $this->folder_prefix.$client->domain.'/mensagens_enviadas/' . $this->filename;
+			//echo $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename;
 
-			if ( file_exists( $this->conn_file = $this->folder_prefix.$client->domain.'/mensagens_enviadas/'.$this->filename ) ) {
+			if ( file_exists( $this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename ) ) {
 				if( $action == "write" ) { $mode = 'a'; }elseif( $action == 'read' ){ $mode = "r"; }else{ die("Modo não definido."); }
-				$this->conn = fopen($this->conn_file = $this->folder_prefix.$client->domain.'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível abrir ficheiro.");
+				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível abrir ficheiro.");
 			}else{
 				if( $action != "write" ) { return false; }
 				$mode = "w";
-				//echo $this->conn_file = $this->folder_prefix.$client->domain.'/mensagens_enviadas/'.$this->filename;
-				$this->conn = fopen($this->conn_file = $this->folder_prefix.$client->domain.'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 166");
+				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 166");
 			}
 		}
 		else

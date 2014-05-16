@@ -31,6 +31,7 @@ class Core {
 
 		$base_path = "/home/pmenet/public_html/holmes/bmm";
 		$base_path = "/Users/bright/Documents/htdocs/pme24/bmm";
+		$base_path = "C:/xampp/htdocs/bmm";
 
 
 		//dependencies
