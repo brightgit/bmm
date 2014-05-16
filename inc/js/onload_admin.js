@@ -53,6 +53,35 @@ function details_in_popup(link, div_id){
 //Loading jQuery
 $(document).ready(function(){
 
+	var counter_input = 0;
+	$(".btn-sender-add").click(function(){
+
+		counter_input ++;
+		var parent_row = $(this).parent().parent(); //tr
+		var full_row = $("table.senders-table").find("tr:nth-child(2)").clone();
+
+		//clear inputs
+		var input = full_row.find("input");
+
+		input.each(function(index){
+			
+			$(input[index]).attr("value", "");
+			$(input[index]).attr("name", $(input[index]).attr("name").replace(/\[([0-9]*)\]/, "[new]["+counter_input+"]"));
+			$(input[index]).removeClass("seamless-input");
+		})
+
+		
+		
+		full_row.insertBefore($(parent_row));
+	})
+
+	$(".seamless-input").click(function(){
+		var inputs = $(".seamless-input");
+		for (var i = inputs.length - 1; i >= 0; i--) {
+			$(inputs[i]).removeClass("seamless-input");
+		};
+	})
+
 	$(".auto-submit").change(function(){
 		$(this).parent().submit();	
 	})

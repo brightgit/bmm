@@ -1,7 +1,6 @@
 <?php
 
-	$abs_path = "/home/pmenet/public_html/holmes/bmm";
-	$abs_path = "/Users/bright/Documents/htdocs/pme24/bmm";
+	$abs_path = base_path();	
 
 	//requires
 	require_once($abs_path . "/inc/modules/settings.mod.php");
@@ -594,7 +593,7 @@
 		$base_dir = str_replace('/admin', "", $homedir);
 
 		//implementar o base_path das settings
-		$base_dir = BASE_DIR;
+		$base_dir = "/Users/bright/Documents/htdocs/bmm";
 
 		return $base_dir."/";
 	}
