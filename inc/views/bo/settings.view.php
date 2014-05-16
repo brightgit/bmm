@@ -12,6 +12,17 @@ class ViewSettings{
 		
 	}
 
+	function get_senders(){
+		$query = "SELECT * FROM senders";
+		$result = mysql_query($query);
+
+		while ($row = mysql_fetch_object($result)) {
+			$output[] = $row;
+		}
+
+		return $output;
+	}
+
 	function __destruct() {
 		$this->login = null;
 		unset($this->login);
@@ -31,6 +42,39 @@ class ViewSettings{
 	</div>
 
 	<form action="" method="post" enctype="multipart/form-data">
+
+		<?php $senders = $this->get_senders(); ?>
+		<h4>Remetentes</h4>
+
+		<div class="well">
+			<div class="row-fluid">
+				<div class="span12">
+					<table class="table background-white senders-table">
+						<tr>
+							<th>Email</th>
+							<th>Remetente</th>
+							<th>Return Path</th>
+							<th></th>
+						</tr>
+						<?php foreach ($senders as $sender): ?>
+						<tr>
+							<td><input type="text" name="sender[<?php echo $sender->id ?>][email]" class="seamless-input" value="<?php echo $sender->email ?>" /></td>
+							<td><input type="text" name="sender[<?php echo $sender->id ?>][email_from]" class="seamless-input" value="<?php echo $sender->email_from ?>" /></td>
+							<td><input type="text" name="sender[<?php echo $sender->id ?>][return_path]" class="seamless-input" value="<?php echo $sender->return_path ?>" /></td>
+							<td>
+								<div class="table-actions">
+									<a class="link-confirm btn btn-small btn-danger" href="?mod=settings&amp;act=delete_sender&amp;id=<?php echo $sender->id ?>"><i class="icon-white icon-remove"></i></a>
+								</div>
+							</td>
+						</tr>
+						<?php endforeach ?>
+						<tr>
+							<td colspan="4" class="align-center"><button class="btn btn-primary btn-sender-add" type="button"><i class="icon-white icon-plus-sign"></i> Adicionar novo</button></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
 
 		<h4>Sender</h4>
 
@@ -141,7 +185,7 @@ class ViewSettings{
 
 			<div class="span6">
 				<label>Logo:</label>
-				<img src="/holmes/bmm/inc/img/admin/client_logo.png" class="img-polaroid" />
+				<img src="<?php echo base_path() ?>/inc/img/admin/client_logo.png" class="img-polaroid" />
 				<br />
 				<!--input type="file" name="client_logo" /-->
 			</div>

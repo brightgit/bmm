@@ -1352,3 +1352,71 @@ hr.data-split{
 	font-weight: bold;
 	text-align: center;
 }
+
+.background-white{
+	background: #fff;
+}
+
+.seamless-input{
+	border: 0 !important;
+	background: transparent !important;
+	font-size: 12px !important;
+	font-family: 'Lucida Sans', 'Lucida Sans Unicode', Arial;
+	box-shadow: none !important;
+}
+
+.seamless-input:hover{
+	cursor: default !important;
+	outline: 0 !important;
+	box-shadow: none !important;
+}
+
+table tr:hover td div.table-actions{
+	opacity: 1;
+}
+
+div.table-actions{
+	opacity: 0;
+	-webkit-transition: all 0.25s ease-out;
+	-moz-transition: all 0.25s ease-out;
+	-ms-transition: all 0.25s ease-out;
+	-o-transition: all 0.25s ease-out;
+	transition: all 0.25s ease-out;
+}
+
+/* noty styles - notification messages */
+div#messages{
+	display: none;
+}
+.noty_bar{
+	background: #f8f8f8;
+	margin: 0px 0px 10px 0px;
+	box-shadow: 1px 0px 1px #333;
+}
+
+.noty_message{
+	padding: 2px !important;
+	text-align: left !important;
+}
+
+.noty_message .dashed{
+	padding: 10px;
+}
+
+.noty_text{
+	color: #338c9c;
+	font-size: 11px;
+}
+
+.noty_type_success{
+	border-left: 4px solid #a0af38;
+}
+
+.noty_type_info{
+	border-left: 4px solid #5bc0de;
+}
+
+.noty_type_error{
+	border-left: 4px solid #d9534f;
+}
+/* noty styles - notification messages */

@@ -110,6 +110,22 @@ class ViewNewsletter {
 		unset($this->ckeditor);
 	}
 
+	public function get_senders(){
+		$sql = "SELECT * from senders";
+		$query = mysql_query($sql);
+
+		if($query){
+			while ($row = mysql_fetch_object($query))
+				$output[] = $row;
+			
+			return $output;
+		}
+
+
+		return false;
+	}
+
+
 	public function get_grupos(){
 
 		$sql = "SELECT * from newsletter_categorias";
@@ -244,6 +260,28 @@ class ViewNewsletter {
 				$groups[$row->categoria_id] = $row->categoria_nome;
 
 			return $groups;
+		}
+
+		return false;
+
+	}
+
+	//listar os grupos a quais os utilizadores têm permissão
+	public function get_sender_permissions($user_id){
+
+		//um utilizador is_admin tem acesso a tudo
+		$sql = "SELECT s.id, s.email, s.`email_from` FROM user_sender_permissions usp
+		LEFT JOIN users u ON u.id = usp.user_id
+		LEFT JOIN senders s ON s.id = usp.sender_id
+		WHERE usp.user_id = ".$user_id;	
+
+		$query = mysql_query($sql);
+
+		if($query){
+			while ($row = mysql_fetch_object($query))
+				$output[$row->id] = $row->email_from;
+
+			return $output;
 		}
 
 		return false;
@@ -505,20 +543,20 @@ function enviar($id = -1){
 		<div>
 			<?php 
 				//listar todos todos os grupos
-				if ($_SESSION["user"]->is_admin != 0) {
-					$query = "SELECT * FROM `newsletter_categorias`";
-				}else{
-					$query = "SELECT * FROM `newsletter_categorias` left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-where user_permissions.user_id = ".$_SESSION["user"]->id;
-				}
+			if ($_SESSION["user"]->is_admin != 0) {
+				$query = "SELECT * FROM `newsletter_categorias`";
+			}else{
+				$query = "SELECT * FROM `newsletter_categorias` left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				where user_permissions.user_id = ".$_SESSION["user"]->id;
+			}
 				//echo $query;
-				$res = mysql_query( $query );
+			$res = mysql_query( $query );
 
-				if ($res) {
-				 	while ($row = mysql_fetch_object($res)) {
-				 		$groups[] = $row;
-				 	}
-				 } 
+			if ($res) {
+				while ($row = mysql_fetch_object($res)) {
+					$groups[] = $row;
+				}
+			} 
 			?>
 
 			<h2>Enviar para os seguintes grupos</h2>
@@ -534,15 +572,15 @@ where user_permissions.user_id = ".$_SESSION["user"]->id;
 					<input type="checkbox" name="groups[]" value="<?php echo $group->id ?>" />
 					<?php echo $group->categoria ?>
 				</label>
-				<?php endforeach ?>
+			<?php endforeach ?>
 
-			</div>
 		</div>
+	</div>
 
-		<input type="submit" name="enviar_grupo" value="Enviar" class="btn btn-danger" />
+	<input type="submit" name="enviar_grupo" value="Enviar" class="btn btn-danger" />
 
-	</form>
-	<?php
+</form>
+<?php
 }
 
 
@@ -645,7 +683,7 @@ function add_mensagem($id = -1, $mensagem = false){
 		</ul>
 
 		<label for="mensagem" style="clear:both;">Mensagem</label>
-			<small>Esta ser&aacute; a mensagem enviada por email. <br />Se utilizar a diretriz <b>{ver_no_browser}</b> tal será substituida pelo link para visualização no browser.<br />A diretriz <b>{remover_email}</b> tal serrá substituida pelo link para remover o email da lista de subscritores.</small>
+		<small>Esta ser&aacute; a mensagem enviada por email. <br />Se utilizar a diretriz <b>{ver_no_browser}</b> tal será substituida pelo link para visualização no browser.<br />A diretriz <b>{remover_email}</b> tal serrá substituida pelo link para remover o email da lista de subscritores.</small>
 		<?php $this->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
 
 		<br />
@@ -701,7 +739,7 @@ function pre_send($id = -1){
 
 		$pdo = new PDO('mysql:host=195.200.253.230;dbname=brightmi_mail_stats', "brightmi_mstats", "Bright#$91", array(
 			PDO::ATTR_PERSISTENT => false
-		));
+			));
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 	} catch (PDOException $ex) {
@@ -873,28 +911,28 @@ function show_statistics_general(){
 						<td><?php echo $newsletter->data_criada ?></td>
 						<td><span class="label label-info"><?php echo $newsletter->estado ?></span></td>
 					</tr>	
-					<?php endwhile ?>
-					<tr>
-						
-					</tr>
-				</table>
-			</div>
+				<?php endwhile ?>
+				<tr>
+
+				</tr>
+			</table>
 		</div>
+	</div>
 
 		<!--div class="tab-pane" id="messages">
 	</div-->
 
 	<?php
-		$sql = "SELECT COUNT(id) as total, MONTH(date_created) AS month_created, YEAR(date_created) AS year_created FROM subscribers GROUP BY year_created, month_created";
-		$query = mysql_query($sql);
+	$sql = "SELECT COUNT(id) as total, MONTH(date_created) AS month_created, YEAR(date_created) AS year_created FROM subscribers GROUP BY year_created, month_created";
+	$query = mysql_query($sql);
 
-		while ($row = mysql_fetch_object($query)) {
-			$subscribers_per_month[$row->month_created] = $row->total;
-		}
+	while ($row = mysql_fetch_object($query)) {
+		$subscribers_per_month[$row->month_created] = $row->total;
+	}
 
-		for ($i=1; $i < 13; $i++) { 
-			$subscribers_per_all_months[$i] = (int) $subscribers_per_month[$i];
-		}
+	for ($i=1; $i < 13; $i++) { 
+		$subscribers_per_all_months[$i] = (int) $subscribers_per_month[$i];
+	}
 
 	?>
 
@@ -922,34 +960,34 @@ function show_statistics_general(){
 				<tr>
 					<th>Número de subscritores</th>
 					<td class="data-value"><?php echo $subscribers_per_all_months[1] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[2] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[3] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[4] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[5] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[6] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[7] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[8] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[9] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[10] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[11] ?></td><td class="data-value"><?php echo $subscribers_per_all_months[12] ?></td></tr>
-			</tbody>
-		</table>
-		
-		<div id="morris-bars-subscritores" style="height:150px;"></div>
+				</tbody>
+			</table>
 
-	</div>
-	
+			<div id="morris-bars-subscritores" style="height:150px;"></div>
 
-	<!-- bounces -->
-	<div class="tab-pane" id="bounces">
-		<?php 
+		</div>
+
+
+		<!-- bounces -->
+		<div class="tab-pane" id="bounces">
+			<?php 
 			$sql = "select * from subscribers where hard_bounces_count > 0";
 			$query = mysql_query($sql);
 			$total_bounces = mysql_num_rows($query);
 
-		 ?>
+			?>
 
-		 <div class="alert alert-info">
-		 	<span>De um total de <b><?php echo $total ?></b> subscritores,  <b><?php echo $total_bounces ?></b> est&atilde;o automaticamente exclu&iacute;dos da lista de envio devido a mensagens anteriores terem sido devolvidas.</span>
-		 </div>
-		<table class="table table-bordered">
-			<tr>
-				<th>E-mail</th>
-			</tr>
-			<?php while ($bounce = mysql_fetch_object($query)): ?>
-			<tr>
-				<td><?php echo $bounce->email ?></td>
-			</tr>
+			<div class="alert alert-info">
+				<span>De um total de <b><?php echo $total ?></b> subscritores,  <b><?php echo $total_bounces ?></b> est&atilde;o automaticamente exclu&iacute;dos da lista de envio devido a mensagens anteriores terem sido devolvidas.</span>
+			</div>
+			<table class="table table-bordered">
+				<tr>
+					<th>E-mail</th>
+				</tr>
+				<?php while ($bounce = mysql_fetch_object($query)): ?>
+				<tr>
+					<td><?php echo $bounce->email ?></td>
+				</tr>
 			<?php endwhile ?>
 		</table>
 	</div>
@@ -1238,7 +1276,7 @@ function show_statistics($id){
 	?>
 
 	<?php if ($list): ?>
-		
+
 	<table style="display:none;" id="table-aberturas-dia" class="table table-condensed table-bordered discrete">
 		<caption>N&uacute;mero de aberturas por dia</caption>
 		<thead>
@@ -1249,29 +1287,29 @@ function show_statistics($id){
 				foreach ($list as $item) { ?>
 				<?php if ($counter < 7): ?>
 				<th class="data-header"><?php echo substr($item->day, 0, 2) ?>/<?php echo substr($item->day, 2, 4) ?></th>
-				<?php endif ?>
+			<?php endif ?>
 
-				<?php 
-				$counter ++;
-				
-			}
-			?>
-			<th class="data-header">&gt; 7</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<th># de aberturas</th>
 			<?php 
-			$counter = 0;
+			$counter ++;
+
+		}
+		?>
+		<th class="data-header">&gt; 7</th>
+	</tr>
+</thead>
+<tbody>
+	<tr>
+		<th># de aberturas</th>
+		<?php 
+		$counter = 0;
 			$total = 0; //total acima de 7
 			foreach ($list as $item) { ?>
 			<?php if ($counter < 7): ?>
 			<td class="data-value"><?php echo $item->num; ?></td>
-			<?php else: ?>
-			<?php $total += $item->num ?>
-			<?php endif ?>
-			<?php 
+		<?php else: ?>
+		<?php $total += $item->num ?>
+	<?php endif ?>
+	<?php 
 			$counter++; //incrementar a contagem, limitar a 7
 		}
 		?>
@@ -1291,7 +1329,7 @@ function show_statistics($id){
 <!-- clicks -->
 <div class="row-fluid">
 
-<?php if (!empty($top_active_users)): ?>
+	<?php if (!empty($top_active_users)): ?>
 	
 	<div class="well most-viewed">
 
@@ -1341,7 +1379,7 @@ function show_statistics($id){
 
 <?php else: ?>
 
-<div class="alert alert-info">N&atilde;o h&aacute; ainda dados suficientes para gerar estat&iacute;sticas sobre cliques</div>
+	<div class="alert alert-info">N&atilde;o h&aacute; ainda dados suficientes para gerar estat&iacute;sticas sobre cliques</div>
 
 <?php endif ?>
 
@@ -1417,8 +1455,8 @@ function show_statistics2(){
 				}
 
 				?>
-					
-				</div>
+
+			</div>
 
 		</div>
 
@@ -1615,6 +1653,29 @@ function showMessages(){
 
 		}
 
+		function update_sender_permissions($user_id, $permissions){
+
+			//apagar tudo primeiro
+			$sql = "DELETE FROM user_sender_permissions WHERE user_id = {$user_id}";
+			$delete = mysql_query($sql);
+
+			if(!empty($user_id) && count($permissions) > 0){
+
+				foreach ($permissions as $garbagekey => $sender_id) {
+					$sql = "INSERT INTO user_sender_permissions (user_id, sender_id) VALUES ({$user_id}, {$sender_id})";
+					$insert = mysql_query($sql);
+				}
+
+				echo "<div class=\"alert alert-success\"> Permiss&otilde;es do utilizador actualizadas com sucesso</div>";
+
+				return true;
+			}
+
+			else
+				echo "<div class=\"alert alert-info\">N&atilde;o foram definidas permissões para o utilizador</div> ";		
+
+		}
+
 		function update_user($id){
 
 			$user_username = $_POST["user_username"];
@@ -1625,6 +1686,8 @@ function showMessages(){
 			$user_password = $_POST["user_password"];
 			$user_group = $_POST["user_group"];
 			$user_group_permissions = $_POST["user_group_permissions"];
+			$user_sender_permissions = $_POST["user_sender_permissions"];
+
 
 		//update à password
 			if(!empty($user_password))
@@ -1640,6 +1703,7 @@ function showMessages(){
 
 		//update as permissoes
 			$this->update_user_permissions($id, $user_group_permissions);
+			$this->update_sender_permissions($id, $user_sender_permissions);
 
 		//
 			unset($_POST);
@@ -1731,7 +1795,7 @@ function showMessages(){
 						<span>N&atilde;o</span>
 						<input type="radio" name="is_active" <?php echo ($user->is_active == 0) ? "checked=\"checked\"":"" ?> />
 
-						<label>Redefinir senha:</label>
+						<label>(Re)definir senha:</label>
 						<input type="password" name="user_password" value="" />
 
 						<label>Tipo de utilizador:</label>
@@ -1739,9 +1803,12 @@ function showMessages(){
 							<?php $this->render_user_groups($user->user_group); ?>
 						</select>
 
-						<h2>Permiss&otilde;es</h2>
+						<h2>Permiss&otilde;es sobre as seguintes mailing lists</h2>
 
-						<?php $groups = $this->get_grupos(); ?>
+						<?php 
+							$groups = $this->get_grupos(); 
+							$senders = $this->get_senders();
+						?>
 
 						<ul>
 
@@ -1751,9 +1818,20 @@ function showMessages(){
 
 							<li><input value="<?php echo $grupo->id ?>"  type="checkbox" name="user_group_permissions[]" <?php echo $checked ?> /> <span><?php echo $grupo->categoria ?></span></li>
 
-						<?php endforeach ?>
+							<?php endforeach ?>
 
-					</ul>
+						</ul>
+
+						<h2>Pode enviar de</h2>
+
+						<ul>
+							<?php foreach ($senders as $sender): ?>
+							<?php $sender_permissions = $this->get_sender_permissions($user->id); ?>
+							<?php $checked = (@array_key_exists($sender->id, $sender_permissions)) ? "checked=\"checked\"":""; ?>
+							<li><input value="<?php echo $sender->id ?>"  type="checkbox" name="user_sender_permissions[]" <?php echo $checked ?> /> <span><?php echo $sender->email_from ?> (<b><?php echo $sender->email ?></b>)</span></li>
+							<?php endforeach ?>
+							
+						</ul>
 
 					<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar" />
 					<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
@@ -1867,104 +1945,104 @@ function show(){
 		<?php if(!empty($grupos[$index])): ?>
 		<?php $active = Tools::check_subscriber_tab();  ?>
 		<?php $control = 0; ?>
-			
+
 		
 		<ul class="nav nav-tabs" id="tabThis">
 			<?php foreach($grupos as $i => $grupo): ?>
 			<?php $active_string = ($active == $i) ? "active" : ""; ?>
 			<?php 
-				if(empty($active) && $control == 0)
+			if(empty($active) && $control == 0)
 					$fall_back_active = "active"; //primeira tab - big ball of
 				else
 					$fall_back_active = "";
-			?>
+				?>
 
-			<li class="<?php echo $active_string ?> <?php echo $fall_back_active ?> "><a href="#grupo<?php echo $i ?>"><?php echo $grupos[$i] ?> </a></li>
-			<?php $control++; ?>
+				<li class="<?php echo $active_string ?> <?php echo $fall_back_active ?> "><a href="#grupo<?php echo $i ?>"><?php echo $grupos[$i] ?> </a></li>
+				<?php $control++; ?>
 			<?php endforeach; ?>
 			<li class="exclusion"><a href="#excluded">Lista de exclus&atilde;o</a></li>
 		</ul>
 
-	<div class="tab-content">
-		<?php $control = 0; ?>
-		<?php foreach($grupos as $i => $grupo): ?>
+		<div class="tab-content">
+			<?php $control = 0; ?>
+			<?php foreach($grupos as $i => $grupo): ?>
 
 			<?php $active_string = ($active == $i) ? "active" : ""; ?>
 			<?php 
-				if(empty($active) && $control == 0)
+			if(empty($active) && $control == 0)
 					$fall_back_active = "active"; //primeira tab
 				else
 					$fall_back_active = "";
-			?>
-			<?php $control++; ?>
-		<div class="tab-pane <?php echo $active_string ?> <?php echo $fall_back_active ?> " id="grupo<?php echo $i ?>">
+				?>
+				<?php $control++; ?>
+				<div class="tab-pane <?php echo $active_string ?> <?php echo $fall_back_active ?> " id="grupo<?php echo $i ?>">
 
-			<a href="#" class="add-new-news btn btn-success" onclick="$('.add-newsletter').fadeToggle(); $('.add-file').hide();"><i class="icon-white icon-plus-sign"></i> <?php echo _('Adicionar subscritor');?></a>
-			<!--a href="#" class="add-new-news btn btn-success" onclick="$('.add-file').fadeToggle(); $('.add-newsletter').hide();"><i class="icon-white icon-list-alt"></i> <?php echo _('Importar ficheiro');?></a-->
-			<a href="#" class="add-new-news btn btn-success" onclick="$('.add-file').fadeToggle(); $('.add-newsletter').hide();"><i class="icon-white icon-list-alt"></i> <?php echo _('Importar ficheiro');?></a>
-			<div class="clear"></div>
-			<br /> 
+					<a href="#" class="add-new-news btn btn-success" onclick="$('.add-newsletter').fadeToggle(); $('.add-file').hide();"><i class="icon-white icon-plus-sign"></i> <?php echo _('Adicionar subscritor');?></a>
+					<!--a href="#" class="add-new-news btn btn-success" onclick="$('.add-file').fadeToggle(); $('.add-newsletter').hide();"><i class="icon-white icon-list-alt"></i> <?php echo _('Importar ficheiro');?></a-->
+					<a href="#" class="add-new-news btn btn-success" onclick="$('.add-file').fadeToggle(); $('.add-newsletter').hide();"><i class="icon-white icon-list-alt"></i> <?php echo _('Importar ficheiro');?></a>
+					<div class="clear"></div>
+					<br /> 
 
-			<form method="post" action="" enctype="multipart/form-data">
-				<div class="add-newsletter">
-					<div>
-						<label for="nome">Nome</label>
-						<input type="text" name="nome" id="nome"/>
-					</div>
-					<div>
-						<label for="email">Email</label>
-						<input type="email" name="email" id="email"/>
-					</div>
-					<div>
-						<label for="is_active">Activo?</label>
-						<select name="is_active" id="is_active">
-							<option selected="selected" value="1">Sim</option>
-							<option value="0">Não</option>
-						</select>
-					</div>
-					<br />
-					<input type="hidden" name="group_id" value="<?php echo $i ?>" />
-					<input type="submit" class="btn btn-primary" name="add-subscriber" value="Adicionar"/>
-				</div>
-			</form>
+					<form method="post" action="" enctype="multipart/form-data">
+						<div class="add-newsletter">
+							<div>
+								<label for="nome">Nome</label>
+								<input type="text" name="nome" id="nome"/>
+							</div>
+							<div>
+								<label for="email">Email</label>
+								<input type="email" name="email" id="email"/>
+							</div>
+							<div>
+								<label for="is_active">Activo?</label>
+								<select name="is_active" id="is_active">
+									<option selected="selected" value="1">Sim</option>
+									<option value="0">Não</option>
+								</select>
+							</div>
+							<br />
+							<input type="hidden" name="group_id" value="<?php echo $i ?>" />
+							<input type="submit" class="btn btn-primary" name="add-subscriber" value="Adicionar"/>
+						</div>
+					</form>
 
-			<form method="post" action="" enctype="multipart/form-data">
+					<form method="post" action="" enctype="multipart/form-data">
 
-				<!-- Importar de csv -->
-				<div class="add-file" style="display:none;">
-					<br />
-					<!--p>O ficheiro CSV dever&aacute; respeitar a estrutura <i><b>nome_subscritor</b></i>,<i><b>email_subscritor</b></i></p-->
+						<!-- Importar de csv -->
+						<div class="add-file" style="display:none;">
+							<br />
+							<!--p>O ficheiro CSV dever&aacute; respeitar a estrutura <i><b>nome_subscritor</b></i>,<i><b>email_subscritor</b></i></p-->
 
-					<div>
-						<label for="nome">Ficheiro</label>
-						<input type="hidden" name="csv_group_id" value="<?php echo $i ?>" />
-						<input type="file" name="csv" />
-					</div>
-					<br />
-					<input type="submit" class="btn btn-primary" name="add-subscriber-file" value="Adicionar"/>
-				</div>
-				<!-- importar de csv -->
+							<div>
+								<label for="nome">Ficheiro</label>
+								<input type="hidden" name="csv_group_id" value="<?php echo $i ?>" />
+								<input type="file" name="csv" />
+							</div>
+							<br />
+							<input type="submit" class="btn btn-primary" name="add-subscriber-file" value="Adicionar"/>
+						</div>
+						<!-- importar de csv -->
 
-				<h2>A listar subscritores de <?php echo $grupos[$i]; ?></h2>
+						<h2>A listar subscritores de <?php echo $grupos[$i]; ?></h2>
 
-				<table cellpadding="0" cellspacing="0" width="100%" id="" class="table subscribers-table" data-group-id="<?php echo $i ?>" >
-					<thead>
-						<tr>
-							<th class="rtl nosort nosearch">
-								<input type="checkbox" name="select_items">
-							</th>
-							<th>
-								<?php echo _('ID'); ?>
-							</th>
-							<th>
-								<?php echo _('Email'); ?>
-							</th>
-							<th>
-								<?php echo _('Bounces'); ?>
-							</th>
-							<th class="rtr nosearch">
-								<?php echo _('Activo'); ?>
-							</th>
+						<table cellpadding="0" cellspacing="0" width="100%" id="" class="table subscribers-table" data-group-id="<?php echo $i ?>" >
+							<thead>
+								<tr>
+									<th class="rtl nosort nosearch">
+										<input type="checkbox" name="select_items">
+									</th>
+									<th>
+										<?php echo _('ID'); ?>
+									</th>
+									<th>
+										<?php echo _('Email'); ?>
+									</th>
+									<th>
+										<?php echo _('Bounces'); ?>
+									</th>
+									<th class="rtr nosearch">
+										<?php echo _('Activo'); ?>
+									</th>
 							<!--th class="rtr nosort nosearch">
 								<?php echo _('Categorias'); ?>
 							</th-->
@@ -1981,8 +2059,8 @@ function show(){
 						if ( $_SESSION["user"]->is_admin ) {
 							$query = "SELECT * FROM `newsletter_categorias`";
 						}else{
-					$query = "SELECT * FROM `newsletter_categorias` left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-where user_permissions.user_id = ".$_SESSION["user"]->id;
+							$query = "SELECT * FROM `newsletter_categorias` left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+							where user_permissions.user_id = ".$_SESSION["user"]->id;
 						}
 						$res = mysql_query($query) or die(mysql_error());
 						while( $row = mysql_fetch_array($res) ) {
@@ -2002,16 +2080,16 @@ where user_permissions.user_id = ".$_SESSION["user"]->id;
 
 		<div class="alert-large alert alert-info">A lista de exclusão é constituida por endereços que solicitaram remoção da mailing list, ou pelos endereços que foram excluídos através da detecção automática de bounces (<b><?php echo $this->core->settings->remove_bounces_count ?></b> e-mails de retorno).<br />Pode alterar esta op&ccedil;&atilde;o, visitando a p&aacute;gina de <a href="?mod=settings">defini&ccedil;&otilde;es</a></div>
 
-<div class="well">
-	<h2>Adicionar endere&ccedil;os &agrave; lista de exclus&atilde;o</h2>
-	<p>Os endere&ccedil;os adicionados a esta lista jamais receber&atilde;o mensagens independentemente do grupo seleccionado</p>
-	<form name="" action="" method="post">
-		<textarea rows="4" cols="24" class="textarea" name="add_to_exclusion"></textarea>
-		<br />
-		<br />
-		<input class="btn btn-primary" type="submit" name="add_to_exclusion_submit" value="Adicionar &agrave; lista de exclus&atilde;o" />
-	</form>
-</div>
+		<div class="well">
+			<h2>Adicionar endere&ccedil;os &agrave; lista de exclus&atilde;o</h2>
+			<p>Os endere&ccedil;os adicionados a esta lista jamais receber&atilde;o mensagens independentemente do grupo seleccionado</p>
+			<form name="" action="" method="post">
+				<textarea rows="4" cols="24" class="textarea" name="add_to_exclusion"></textarea>
+				<br />
+				<br />
+				<input class="btn btn-primary" type="submit" name="add_to_exclusion_submit" value="Adicionar &agrave; lista de exclus&atilde;o" />
+			</form>
+		</div>
 		
 
 		<table cellpadding="0" cellspacing="0" width="100%" id="" class="table exclusions-table">

@@ -26,6 +26,18 @@ class Settings{
 
 	function __construct($mode = '') {
 		$this->get();
+
+		//act upon act
+		if(!empty($_GET["act"])){
+			$act = $_GET["act"];
+			$this->$act();
+		}
+	}
+
+	function delete_sender(){
+		$sender_id = (int) $_GET["id"];
+		$sql = "DELETE FROM senders WHERE id = " . $sender_id;
+		return $query = mysql_query($sql);
 	}
 
 	function get(){
@@ -60,7 +72,45 @@ class Settings{
 
 	}
 
+	function update_senders($emails){
+		
+		foreach ($emails as $key => $email_info) {
+
+			//o array emails contém [1,2,3 - update] ou [new - insert] submetidos via POST
+			if(is_numeric($key)){
+
+				$sql = "UPDATE senders SET ";
+				$sql .= "`email` = '".$email_info["email"]."', ";
+				$sql .= "`email_from` = '".$email_info["email_from"]."', ";
+				$sql .= "`return_path` = '".$email_info["return_path"]."'";
+				$sql .= " WHERE id = " .$key;
+
+				$query = mysql_query($sql); //update
+			}
+			//novo endereço - inserir
+			else{
+				foreach ($email_info as $email) {
+					
+					$sql = "INSERT INTO senders SET ";
+					$sql .= "`email` = '".$email["email"]."', ";
+					$sql .= "`email_from` = '".$email["email_from"]."', ";
+					$sql .= "`return_path` = '".$email["return_path"]."'";
+
+					$query = mysql_query($sql); //insert
+				}
+			}
+
+		}
+
+		Tools::notify_add("Informação sobre remetentes actualizada com sucesso");
+
+	}
+
 	function bind_from_post(){
+
+		//update senders
+		$this->update_senders = $this->update_senders($_POST["sender"]);
+		
 
 		$this->sender_host = $_POST["sender_host"]; 
 		$this->sender_smtp_port = (int) $_POST["sender_smtp_port"];
@@ -80,6 +130,8 @@ class Settings{
 		$this->unsubscribe_automatically = $_POST["unsubscribe_automatically"];
 		$this->alternate_remove_email = $_POST["alternate_remove_email"];
 		$this->base_path = $_POST["base_path"];
+
+
 	}
 
 	function save(){
@@ -100,7 +152,7 @@ class Settings{
 		mysql_query("DELETE FROM settings");
 
 	        //como pode não existir o registo ainda, usar REPLACE
-		$sql = "REPLACE `settings` SET `sender_host` = '{$this->sender_host}', `sender_smtp_port` = '{$this->sender_smtp_port}', `sender_username` = '{$this->sender_username}', `sender_password` = '{$this->sender_password}', `sender_name` = '{$this->sender_name}', `sender_api_key` = '{$this->sender_api_key}', `sender_email_from` = '{$this->sender_email_from}', `return_path` = '{$this->return_path}', `return_path_password` = '{$this->return_path_password}', `sender_domain` = '{$this->sender_domain}', `ck_upload_url` = '{$this->ck_upload_url}', `ck_upload_dir` = '{$this->ck_upload_dir}', `swift_absolute_path` = '{$this->swift_absolute_path}', `remove_bounces` = {$this->remove_bounces}, `remove_bounces_count` = {$this->remove_bounces_count}, `unsubscribe_automatically` = {$this->unsubscribe_automatically}, `base_path` = '{$this->base_path}', `alternate_remove_email` = '{$this->alternate_remove_email}'";
+		$sql = "REPLACE `settings` SET `user_id` = 1, `sender_host` = '{$this->sender_host}', `sender_smtp_port` = '{$this->sender_smtp_port}', `sender_username` = '{$this->sender_username}', `sender_password` = '{$this->sender_password}', `sender_name` = '{$this->sender_name}', `sender_api_key` = '{$this->sender_api_key}', `sender_email_from` = '{$this->sender_email_from}', `return_path` = '{$this->return_path}', `return_path_password` = '{$this->return_path_password}', `sender_domain` = '{$this->sender_domain}', `ck_upload_url` = '{$this->ck_upload_url}', `ck_upload_dir` = '{$this->ck_upload_dir}', `swift_absolute_path` = '{$this->swift_absolute_path}', `remove_bounces` = {$this->remove_bounces}, `remove_bounces_count` = {$this->remove_bounces_count}, `unsubscribe_automatically` = {$this->unsubscribe_automatically}, `base_path` = '{$this->base_path}', `alternate_remove_email` = '{$this->alternate_remove_email}'";
 		
 		$query = mysql_query($sql);
 
