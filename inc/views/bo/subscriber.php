@@ -1,9 +1,5 @@
 <div class="content">
 
-	<pre>
-		<?php var_dump($data) ?>
-	</pre>
-
 	<h1>A editar subscritor</h1>
 
 	<a class="btn" href="?mod=newsletter&amp;view=subscribers">Voltar</a>
@@ -14,30 +10,61 @@
 	<div class="well">
 		<form action="" method="post" novalidate="novalidate">
 
-			<label>Nome:</label>
-			<input class="seamless-input" type="text" name="subscriber_username" value="<?php echo $data->nome ?>">
+			<div class="row-fluid">
+				<div class="span4">
+					<h4>Informação pessoal</h4>
 
-			<label>Email:</label>
-			<input class="seamless-input" type="text" name="subscriber_first_name" value="<?php echo $data->email ?>">
+					<label>Nome:</label>
+					<input type="text" name="subscriber_username" value="<?php echo $data->subscriber->nome ?>">
 
-			<label>Sexo:</label>
-			<input class="seamless-input" type="text" name="subscriber_first_name" value="<?php echo $data->email ?>">
+					<label>Email:</label>
+					<input type="text" name="subscriber_first_name" value="<?php echo $data->subscriber->email ?>">
 
-			<label>Telefone:</label>
-			<input class="seamless-input" type="text" name="subscriber_telefone_1" value="<?php echo $data->telefone_1 ?>">
+					<label>Sexo:</label>
+					<input type="text" name="subscriber_first_name" value="<?php echo $data->subscriber->email ?>">
 
-			<label>Telefone (alternativo):</label>
-			<input class="seamless-input" type="text" name="subscriber_telefone_1" value="<?php echo $data->telefone_2 ?>">
+					<label>Telefone:</label>
+					<input type="text" name="subscriber_telefone_1" value="<?php echo $data->subscriber->telefone_1 ?>">
 
-			<label>Data nascimento:</label>
-			<input class="seamless-input" type="text" name="subscriber_first_name" value="<?php echo $data->data_nascimento ?>">
-			
-			<label>Activo:</label>
-			
+					<label>Telefone (alternativo):</label>
+					<input type="text" name="subscriber_telefone_1" value="<?php echo $data->subscriber->telefone_2 ?>">
 
+					<label>Data nascimento:</label>
+					<input type="text" name="subscriber_first_name" value="<?php echo $data->subscriber->data_nascimento ?>">
 
-			<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar">
-			<a class="btn" href="?mod=newsletter&amp;view=subscribers">Voltar</a>
+					<label>Activo:</label>
+					<span>Sim</span>
+					<input type="radio" name="is_active" <?php echo ($data->subscriber->is_active == 1) ? "checked=\"checked\"":"" ?> />
+
+					<span>N&atilde;o</span>
+					<input type="radio" name="is_active" <?php echo ($data->subscriber->is_active == 0) ? "checked=\"checked\"":"" ?> />
+				</div>
+
+				<div class="span4">
+					<h4>Grupos</h4>
+
+					<select multiple="multiple">
+						<?php foreach($data->categories as $category): ?>
+						<?php $selected = array_key_exists($category->id, $data->groups_ids) ? "selected='selected'":""; ?>
+						<option <?php echo $selected ?> value="<?php echo $category->id ?>"><?php echo $category->categoria ?></option>
+						<?php endforeach; ?>
+					</select>
+	
+				</div>
+
+				<div class="span4">
+					<h4>Dados estatísticos</h4>
+				</div>
+
+			</div>
+
+			<div class="clear"></div>
+
+			<br />
+			<div class="alignright">
+				<a class="btn" href="?mod=newsletter&amp;view=subscribers">Voltar</a>
+				<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar">
+			</div>
 
 		</form>
 	</div>
