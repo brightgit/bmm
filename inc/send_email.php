@@ -31,7 +31,6 @@ function log_error( $e )
 $emails_from = array( $core->settings->sender_email_from => $core->settings->sender_name);
 
 
-
 $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.id as subscriber_id, subscribers.email as subscriber_email, subscribers.hard_bounces_count as subscriber_hard_bounces_count, subscribers.nome as subscriber_nome, subscribers.data_nascimento as subscriber_data_nascimento, subscribers.sexo as subscriber_sexo, subscribers.telefone_1, subscribers.telefone_2, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
 	from mensagens_enviadas 
 	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
@@ -39,7 +38,6 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 	where mensagens.id is not null
 	limit 100
 	";
-
 
 	$res = mysql_query( $query ) or die( mysql_error() );
 	if(mysql_num_rows($res) == 0 ){	//No messages to be sent.
@@ -49,16 +47,11 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 	//adicionar doctype devido a Outlook
 	$doctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
 
-
-
 	while( $mensagem = mysql_fetch_object($res) ) {
 		//echo '1';
 		//Mensagem
-		$to = array($mensagem->email => $mensagem->email);
+		$to = array($mensagem->subscriber_email => $mensagem->subscriber_email);
 		$html_body = BRIGHT_mail_feedback::inject($mensagem); //passa a receber apenas um parâmetro (informação da newsletter + informação do subscriber num object)
-
-		var_dump($html_body);
-		die();
 
 		//Meter nos stats
 		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";
@@ -84,7 +77,7 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 			        'from_name' => $core->settings->sender_name,
 			        'to' => array(
 			            array(
-			                'email' => $mensagem->subscruber_email,
+			                'email' => $mensagem->subscriber_email,
 			                'name' => false,
 			                'type' => 'to'
 			            )

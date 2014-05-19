@@ -124,10 +124,14 @@ $tools = $core->getTools();
 </div>
 </div>
 <div class="footer">
-	Powered by
-	<a class="bright-link" href="http://www.bright.pt/" target="_blank">Bright</a>
-	&amp;
-	<a class="digidoc-link" href="http://digidoc.pt/" target="_blank">Digidoc</a>
+	<div class="row-fluid">
+	<div class="span12">
+		Powered by
+		<a class="bright-link" href="http://www.bright.pt/" target="_blank">Bright</a>
+		&amp;
+		<a class="digidoc-link" href="http://digidoc.pt/" target="_blank">Digidoc</a>
+	</div>
+	</div>
 </div>
 </div>
 

@@ -681,36 +681,36 @@ function add_mensagem($id = -1, $mensagem = false){
 
 
 
-		<div class="span9 well">
-			<label for="mensagem">Mensagem (Email)</label>
-			<?php $this->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
+			<div class="span9 well">
+				<label for="mensagem">Mensagem (Email)</label>
+				<?php $this->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
 
-			<br />
+				<br />
 
-			<label for="mensagem_browser">Mensagem (Browser)</label>
+				<label for="mensagem_browser">Mensagem (Browser)</label>
 
-			<?php $this->getCkEditor()->editor("mensagem_browser", ($mensagem->mensagem_browser)); ?>
+				<?php $this->getCkEditor()->editor("mensagem_browser", ($mensagem->mensagem_browser)); ?>
 
-			<br />
+				<br />
 
-			<div class="alert alert-info">O campo <strong>mensagem texto</strong>, permite a clientes de email apresentar uma mensagem alternativa à newsletter, quando a apresentação de conteúdo em HTML está desabilitado. O texto utilizado é também lido por filtros de SPAM e ao representar uma alternativa textual ao conteúdo da newsletter, aumenta a probabilidade de entrega. É recomendado o preenchimento deste campo com um texto sem formatação HTML.</div>
+				<div class="alert alert-info">O campo <strong>mensagem texto</strong>, permite a clientes de email apresentar uma mensagem alternativa à newsletter, quando a apresentação de conteúdo em HTML está desabilitado. O texto utilizado é também lido por filtros de SPAM e ao representar uma alternativa textual ao conteúdo da newsletter, aumenta a probabilidade de entrega. É recomendado o preenchimento deste campo com um texto sem formatação HTML.</div>
 
-			<label for="mensagem_text">Mensagem texto</label>
-			<textarea cols="80" rows="5" name="mensagem_text"><?php echo $mensagem->mensagem_text ?></textarea>
+				<label for="mensagem_text">Mensagem texto</label>
+				<textarea cols="80" rows="5" name="mensagem_text"><?php echo $mensagem->mensagem_text ?></textarea>
 
-			<div class="clear"></div>
+				<div class="clear"></div>
 
-			<br />
-			<br />
+				<br />
+				<br />
 
-			<div class="pull-right">
-				<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
-				<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
-				<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+				<div class="pull-right">
+					<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
+					<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
+					<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+				</div>
 			</div>
-		</div>
 
-		<div class="span3 well">
+			<div class="span3 well">
 				<input type="hidden" name="mensagem_id" value="<?php echo $mensagem->id; ?>" />
 
 				<label>Assunto: </label>
@@ -727,20 +727,23 @@ function add_mensagem($id = -1, $mensagem = false){
 					<?php $checked = (@array_key_exists($user->id, $users_with_permission)) ? "checked=\"checked\"":""; ?>
 					<?php if($user->id == $_SESSION["user"]->id) $force_checked = "checked=\"checked\""; else $force_checked = ""; ?>
 					<li><input <?php echo $checked ?> <?php echo $force_checked; ?> type="checkbox" name="user_permissions[]" value="<?php echo $user->id?>" /> <?php echo $user->first_name . " " . $user->last_name ?></li>
-					<?php endforeach ; ?>
-				</ul>
+				<?php endforeach ; ?>
+			</ul>
 
-				<label>Directrizes / Alias:</label>
-				<dl>
-					<dt>{ver_no_browser}</dt>
-						<dd>Link de visualização on-line</dd>
-					<dt>{remover_email}</dt>
-						<dd>Link para remoção da mailing list</dd>
-					<dt>{saudacao}</dt>
-					<dt>{idade}</dt>
-					<dt>{campo:db_name}	</dt>
-				</dl>
-				
+			<label>Directrizes / Alias:</label>
+			<dl>
+				<dt>{ver_no_browser}</dt>
+				<dd>Link de visualização on-line</dd>
+				<dt>{remover_email}</dt>
+				<dd>Link para remoção da mailing list</dd>
+				<dt>{saudacao}</dt>
+				<dd>Caro / Cara (dependendo do sexo definido)</dd>
+				<dt>{idade}</dt>
+				<dd>Idade do subscritor (dependendo da data nascimento definida)</dd>
+				<dt>{campo:db_name}</dt>
+				<dd>Campos <i>custom</i></dd>
+			</dl>
+
 
 			<div class="pull-right">
 				<a href="?mod=newsletter&amp;view=messages" class="btn"><?php echo _('Voltar');?></a>
@@ -802,7 +805,7 @@ function pre_send($id = -1){
 	?>
 	<!-- Acções -->
 	<p style="text-align:left;" class="action_messages">
-		<a class="btn" href="../inc/visualize_news.php/<?php echo $client->id; ?>/<?php echo $mensagem->id; ?>/admin" target="_blank"><i class="icon-eye-open"></i> Pré-visualizar</a>
+		<a class="btn" href="../inc/visualize_news.php/<?php echo $mensagem->id; ?>/mensagem-teste/admin" target="_blank"><i class="icon-eye-open"></i> Pré-visualizar</a>
 		<a class="btn" href="?mod=newsletter&view=add_mensagem&id=<?php echo $id; ?>"><i class="icon-pencil"></i> Editar</a>
 		<a class="btn btn-info newsletter_toggle" href="#">Enviar teste <i class="icon-share icon-white"></i></a>
 		<a class="btn btn-success" href="?mod=newsletter&view=enviar&id=<?php echo $id; ?>">Enviar <i class="icon-share icon-white"></i></a>
@@ -1084,6 +1087,7 @@ function show_statistics($id){
 		<p>Esta mensagem não tem nenhum envio associado.</p>
 		<?php
 		return false;
+
 	}elseif( mysql_num_rows( $res ) == 1 ) {
 		$active_envio = mysql_fetch_array($res);
 	}else{
@@ -1105,6 +1109,7 @@ function show_statistics($id){
 				echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].( ($_SESSION["user"]->is_admin)? ' ('.$row["first_name"].' '.$row["last_name"].') ':'' ).'</option>';
 			}else{
 				echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
+>>>>>>> FETCH_HEAD
 
 			}
 		}
@@ -1762,6 +1767,17 @@ function showMessages(){
 
 	function update_user($id){
 
+		
+
+		//user logo - if uploaded
+		if(!empty($_FILES["image"])){
+			$file_path = $_FILES["image"]["tmp_name"];
+			$fp = fopen($file_path, 'r');
+			$image_data = fread($fp, filesize($file_path));
+			$image_data = addslashes($image_data);
+			fclose($fp);
+		}
+
 		$user_username = $_POST["user_username"];
 		$user_first_name = $_POST["user_first_name"];
 		$user_last_name = $_POST["user_last_name"];
@@ -1778,8 +1794,7 @@ function showMessages(){
 			$sql_password = "`password` = '".md5($user_password)."', ";
 
 		//update ao user
-		$sql = "UPDATE `users` SET `first_name` = '{$user_first_name}', `last_name` = '{$user_last_name}', `username` = '{$user_username}', `email` = '{$user_email}', ".$sql_password." `is_active` = {$is_active}, `user_group` = {$user_group} WHERE id = {$id}";
-
+		$sql = "UPDATE `users` SET `first_name` = '{$user_first_name}', `last_name` = '{$user_last_name}', `username` = '{$user_username}', `email` = '{$user_email}', ".$sql_password." `is_active` = {$is_active}, `user_group` = {$user_group}, `image_blob` = '{$image_data}' WHERE id = {$id}";
 		$query = mysql_query($sql);
 
 		//update as permissoes
@@ -1854,71 +1869,95 @@ function showMessages(){
 			<br />
 			<br />
 
+
+			<form action="" method="post" enctype="multipart/form-data">
 			<div class="well">
-				<form action="" method="post">
+				<div class="row-fluid">
+				
 
-					<label>Username:</label>
-					<input type="text" name="user_username" value="<?php echo $user->username ?>" />
+					<div class="span4">
+						<label>Username:</label>
+						<input type="text" name="user_username" value="<?php echo $user->username ?>" />
 
-					<label>Primeiro nome:</label>
-					<input type="text" name="user_first_name" value="<?php echo $user->first_name ?>" />
+						<label>Primeiro nome:</label>
+						<input type="text" name="user_first_name" value="<?php echo $user->first_name ?>" />
 
-					<label>Último nome:</label>
-					<input type="text" name="user_last_name" value="<?php echo $user->last_name ?>" />
+						<label>Último nome:</label>
+						<input type="text" name="user_last_name" value="<?php echo $user->last_name ?>" />
 
-					<label>E-mail:</label>
-					<input type="text" name="user_email" value="<?php echo $user->email ?>" />
+						<label>E-mail:</label>
+						<input type="text" name="user_email" value="<?php echo $user->email ?>" />
 
-					<label>Activo:</label>
-					<span>Sim</span>
-					<input type="radio" name="is_active" <?php echo ($user->is_active == 1) ? "checked=\"checked\"":"" ?> />
+						<label>Activo:</label>
+						<span>Sim</span>
+						<input type="radio" name="is_active" <?php echo ($user->is_active == 1) ? "checked=\"checked\"":"" ?> />
 
-					<span>N&atilde;o</span>
-					<input type="radio" name="is_active" <?php echo ($user->is_active == 0) ? "checked=\"checked\"":"" ?> />
+						<span>N&atilde;o</span>
+						<input type="radio" name="is_active" <?php echo ($user->is_active == 0) ? "checked=\"checked\"":"" ?> />
 
-					<label>(Re)definir senha:</label>
-					<input type="password" name="user_password" value="" />
+						<label>(Re)definir senha:</label>
+						<input type="password" name="user_password" value="" />
+					</div>
 
-					<label>Tipo de utilizador:</label>
-					<select name="user_group">
-						<?php $this->render_user_groups($user->user_group); ?>
-					</select>
+					<div class="span4">
+						<label>Tipo de utilizador:</label>
+						<select name="user_group">
+							<?php $this->render_user_groups($user->user_group); ?>
+						</select>
 
-					<h2>Permiss&otilde;es sobre as seguintes mailing lists</h2>
+						<h2>Permiss&otilde;es sobre as mailing lists</h2>
 
-					<?php 
-					$groups = $this->get_grupos(); 
-					$senders = $this->get_senders();
-					?>
+						<?php 
+						$groups = $this->get_grupos(); 
+						$senders = $this->get_senders();
+						?>
+
+						<ul>
+							<?php foreach($groups as $grupo): ?>
+							<?php $user_permissions = $this->get_group_permissions($user->id); ?>
+							<?php $checked = (@array_key_exists($grupo->id, $user_permissions)) ? "checked=\"checked\"":""; ?>
+							<li><input value="<?php echo $grupo->id ?>"  type="checkbox" name="user_group_permissions[]" <?php echo $checked ?> /> <span><?php echo $grupo->categoria ?></span></li>
+						<?php endforeach ?>
+					</ul>
+
+					<h2>Pode enviar de</h2>
 
 					<ul>
-
-						<?php foreach($groups as $grupo): ?>
-						<?php $user_permissions = $this->get_group_permissions($user->id); ?>
-						<?php $checked = (@array_key_exists($grupo->id, $user_permissions)) ? "checked=\"checked\"":""; ?>
-
-						<li><input value="<?php echo $grupo->id ?>"  type="checkbox" name="user_group_permissions[]" <?php echo $checked ?> /> <span><?php echo $grupo->categoria ?></span></li>
-
+						<?php foreach ($senders as $sender): ?>
+						<?php $sender_permissions = $this->get_sender_permissions($user->id); ?>
+						<?php $checked = (@array_key_exists($sender->id, $sender_permissions)) ? "checked=\"checked\"":""; ?>
+						<li><input value="<?php echo $sender->id ?>"  type="checkbox" name="user_sender_permissions[]" <?php echo $checked ?> /> <span><?php echo $sender->email_from ?> (<b><?php echo $sender->email ?></b>)</span></li>
 					<?php endforeach ?>
 
 				</ul>
+			</div>
 
-				<h2>Pode enviar de</h2>
+			<div class="span4">
+				<h2>Logótipo</h2>
 
-				<ul>
-					<?php foreach ($senders as $sender): ?>
-					<?php $sender_permissions = $this->get_sender_permissions($user->id); ?>
-					<?php $checked = (@array_key_exists($sender->id, $sender_permissions)) ? "checked=\"checked\"":""; ?>
-					<li><input value="<?php echo $sender->id ?>"  type="checkbox" name="user_sender_permissions[]" <?php echo $checked ?> /> <span><?php echo $sender->email_from ?> (<b><?php echo $sender->email ?></b>)</span></li>
-				<?php endforeach ?>
+				<?php if(!empty($user->image_blob)): ?>
+				<div>
+					<img class="img-polaroid" src="data:image/jpeg;base64, <?php echo base64_encode( $user->image_blob ) ?>"/>
+				</div>
+				<?php endif; ?>
 
-			</ul>
+				<br />
 
-			<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar" />
-			<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
+				<input type="file" name="image" />
+		</div>
 
-		</form>
-	</div>
+	
+</div>
+</div>
+
+<div class="pull-right">
+	<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
+	<input class="btn btn-primary" type="submit" name="save" value="Guardar" />
+</div>
+
+</form>
+
+<div class="clearfix"></div>
 
 <?php endif; ?>
 

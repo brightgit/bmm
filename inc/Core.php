@@ -30,7 +30,10 @@ class Core {
 
 	function __construct($mode = 'fe') {
 
-
+		// echo "<hr />";
+		// $debug = debug_backtrace();
+		// var_dump($debug);
+		// echo "<hr />";
 
 		self::load_general_functions();
 		$base_path = base_path();

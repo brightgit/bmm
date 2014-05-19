@@ -28,7 +28,7 @@ body#internal {margin:0; padding:0; font-family:Verdana, Arial, Helvetica, sans-
 
 .menu li.active { border:1px solid grey; border-bottom: 5px solid white; background-color: white; }
 
-.footer {height: 30px;background-color: none; color:black; text-align: right;vertical-align: middle; background-repeat: repeat-x;bottom: 0px;width: 100%;}
+.footer {padding:0px 25px; height: 30px;background-color: none; color:black; text-align: right;vertical-align: middle; background-repeat: repeat-x;bottom: 0px;}
 
 .headerLinks {
 	color: #FFF;
@@ -96,6 +96,7 @@ body#internal {margin:0; padding:0; font-family:Verdana, Arial, Helvetica, sans-
 
 .content {
 	padding: 0px 25px;
+	min-height: 700px;
 }
 
 .table_content {
@@ -1250,7 +1251,6 @@ transform: rotateY(180deg);
 
 .digidoc-link{
 	display:inline-block; padding:6px; color:#E38B02; font-weight:bold;
-	margin-right:50px;
 }
 
 .full-widget{
