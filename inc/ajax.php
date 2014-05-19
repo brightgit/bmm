@@ -62,7 +62,7 @@ if($_GET['act'] == 'get_subscriber_details' ):
 
 	if(!empty($info->nome)){
 	echo '<span class="popover-label">Nome:</span>';
-	echo '<span class="popover-value">'.$info->nome.' (<a href="index.php?mod=subscribers&id='.$info->id.'">ver perfil</a>)</span>';	
+	echo '<span class="popover-value">'.$info->nome.' (<a href="index.php?mod=subscribers&act=view_subscriber&id='.$info->id.'">ver perfil</a>)</span>';	
 	}
 
 	echo '<span class="popover-label">Email:</span>';

@@ -30,24 +30,22 @@ class Core {
 
 	function __construct($mode = 'fe') {
 
-		$base_path = "/home/pmenet/public_html/holmes/bmm";
-		$base_path = "/Users/bright/Documents/htdocs/pme24/bmm";
-		$base_path = "C:/xampp/htdocs/bmm";
-		#$base_path = "/Users/bright/Documents/htdocs/bmm"; //force override
 
 		error_reporting( E_ALL );
 
 		self::load_general_functions();
 		$base_path = base_path();
 
+		$base_path = base_path();
+
 		//dependencies
-		require_once $base_path . '/inc/Debug.class.php';
-		require_once $base_path . '/inc/database.php';
-		require_once $base_path . '/inc/Tools.class.php';
-		require_once $base_path . '/inc/modules/user.mod.php';
-		require_once $base_path . "/inc/libs/ckeditor/ckeditor.php";
-		require_once $base_path . "/inc/modules/feedback.php";
-		require_once $base_path . "/inc/modules/settings.mod.php";
+		require_once base_path('/inc/Debug.class.php');
+		require_once base_path('/inc/database.php');
+		require_once base_path('/inc/Tools.class.php');
+		require_once base_path('/inc/modules/user.mod.php');
+		require_once base_path("/inc/libs/ckeditor/ckeditor.php");
+		require_once base_path("/inc/modules/settings.mod.php");
+		require_once base_path("/inc/modules/feedback.php");
 
 		//carregar as definições da app
 		$this->settings = new Settings;

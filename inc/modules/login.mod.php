@@ -22,7 +22,7 @@ class Login extends Core{
 		if($mode!='')
 			$this->setMode($mode);
 		$this->debug = new Debug();
-		parent::__construct();
+		//parent::__construct();
 	}
 
 	function __destruct() {

@@ -1,4 +1,0 @@
-bmm
-===
-
-Bright Mail Management

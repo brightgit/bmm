@@ -2,7 +2,7 @@
 
 header("Content-Type: text/html; charset=utf-8");
 
-include('../inc/Core.php');
+require_once('../inc/Core.php');
 $core = new Core('bo');
 
 if (isset($_GET['logout']) || isset($_GET['sdestroy'])):
