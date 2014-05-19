@@ -31,7 +31,9 @@ class Core {
 	function __construct($mode = 'fe') {
 
 
+
 		self::load_general_functions();
+		$base_path = base_path();
 
 		$base_path = base_path();
 

@@ -13,10 +13,16 @@ require_once('Core.php');
 
 $core = new Core('bo');
 
-//get the message
-$query = "SELECT mensagem_browser, assunto 
-	FROM `mensagens`
-	left join envios on envios.mensagem_id = mensagens.id WHERE envios.id = {$_GET["envio_id"]}";
+
+if ( $_GET["url"] != "mensagem-teste" ) {
+	//get the message
+	$query = "SELECT mensagem_browser, assunto 
+		FROM `mensagens`
+		left join envios on envios.mensagem_id = mensagens.id WHERE envios.id = {$_GET["envio_id"]}";
+}else{
+	$query = "SELECT mensagem_browser, assunto 
+		FROM `mensagens` WHERE id = {$_GET["envio_id"]}";	
+}
 //echo $query;
 
 //var_dump( $_GET );
@@ -37,15 +43,17 @@ if( !$news ){
 	$feedback = new BRIGHT_mail_feedback;
 
 	//if there's tracking information, register
-	if(!empty($_GET["envio_id"]) && !empty($_GET["url"]) && !empty($_GET["email"]))
-		$feedback->insert( $_GET[""] ); ?>
+	if(!empty($_GET["envio_id"]) && !empty($_GET["url"]) && !empty($_GET["email"]) && $_GET["url"] != "mensagem-teste") {
+		$feedback->insert( );
+	}
+	?>
 
 	<html>
 		<head>
 			<title><?php echo $news->assunto ?></title>
 		</head>
 		<body>
-			<?php echo strip_tags( $feedback->inject_browser( $news->mensagem_browser, $_GET["email"], $_GET["mensagem_id"] ), "<p><strong><caption><span><h1><h2><h3><h4><h5><h6><div><a><img><br><table><tr><td><thead><tbody><body><head><title><meta>"); ?>
+			<?php echo strip_tags( $feedback->inject_browser( $news->mensagem_browser, $_GET["email"], $_GET["envio_id"] ), "<p><strong><caption><span><h1><h2><h3><h4><h5><h6><div><a><img><br><table><tr><td><thead><tbody><body><head><title><meta>"); ?>
 			<?php //echo strip_tags($news->mensagem_browser, "<p><div><a><img><br><table><tr><td><thead><tbody><body><head><title><meta>"); ?>
 		</body>
 	</html>
