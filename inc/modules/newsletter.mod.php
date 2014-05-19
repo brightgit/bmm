@@ -190,14 +190,14 @@ class Newsletter {
 
 	function save() {
 		
-		$core = new Core();
-		$tools = $core->getTools();
+		//$core = new Core();
+		//$tools = $core->getTools();
 
 		//dados a inserir
-		$email = $tools->getPost('email');
-		$nome = $tools->getPost('nome');
-		$is_active = $tools->getPost('is_active');
-		(int) $group_id = $tools->getPost("group_id");
+		$email = tools::getPost('email');
+		$nome = tools::getPost('nome');
+		$is_active = tools::getPost('is_active');
+		(int) $group_id = tools::getPost("group_id");
 
 		$sql = "INSERT into subscribers set nome = '{$nome}', email = '{$email}', is_active = {$is_active}";
 		$res = mysql_query($sql);

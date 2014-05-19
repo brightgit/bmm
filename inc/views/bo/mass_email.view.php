@@ -145,11 +145,17 @@ class ViewMass_email {
 				$return_path = $result->return_path;
 				$from_email = $result->email;
 				$from_name = $result->email_from;
+
+				//adaptar 
+				$mensagem->email = $_POST["text_email"];
+				$mensagem->url = "mensagem-teste";
+				$mensagem->envio_id = $mensagem->id; //falsear o envio
+				
 			
 				require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
-				$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $_POST['text_email'], $mensagem->id, "mensagem-teste" );
+				$html_body = BRIGHT_mail_feedback::inject($mensagem);
 
 				$message = array(
 			        'html' => $html_body,

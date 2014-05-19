@@ -202,7 +202,8 @@
 			$email = $mensagem->email;
 			$html_body = $mensagem->mensagem;
 			$envio_id = $mensagem->envio_id;
-			
+			$url = $mensagem->url;
+		
 			//remove token
 			$salt = "bright";
 			$remove_token = md5($email.$salt);
@@ -213,7 +214,7 @@
 				$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
 				//cria o link de remoção automática
-				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."\">remover</a>", $html_body);
+				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);
 
 				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
 				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
@@ -232,13 +233,13 @@
 				}
 
 				//substituição dos matches pré-feitos {saudacao}
-				if(strpos($html_body, "{saudacao}")){
+				if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber->sexo)){
 					//determinar se é M ou F
 					$saudacao = $mensagem->subscriber_sexo == "M" ? "Caro Sr. " . $mensagem->subscriber_nome : "Cara Srª. " . $mensagem->subscriber_nome;
 					$html_body = str_replace("{saudacao}", $saudacao, $html_body); //subsctituir
 				}
 				
-				if(strpos($html_body, "{idade}")){					
+				if(strpos($html_body, "{idade}") && !empty($mensagem->subscriber_data_nascimento)){					
 					$idade = floor((time() - strtotime($mensagem->subscriber_data_nascimento)) /  (60 * 60 * 24 * 365));
 					$html_body = str_replace("{idade}", $idade, $html_body); //subsctituir
 				}

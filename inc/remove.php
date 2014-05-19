@@ -60,9 +60,9 @@ $email = $_GET["email"]; ?>
 <html>
 <head>
 	<title><?php echo utf8_encode($client->name) ?> - Remover subscri&ccedil;&atilde;o</title>
-	<link rel="stylesheet" type="text/css" href="/holmes/bmm/inc/js/bootstrap/css/bootstrap.css" />
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url("inc/js/bootstrap/css/bootstrap.css") ?>" />
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans|Numans' rel='stylesheet' type='text/css' />
-	<link rel="stylesheet" type="text/css" href="/holmes/bmm/inc/css/remove.css" />
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url("inc/css/remove.css") ?>" />
 	<style type="text/css">
 
 	</style>
@@ -74,7 +74,7 @@ $email = $_GET["email"]; ?>
 
 			<div class="breathe">
 
-				<div class="logo-wrap"><a href="http://www.<?php echo $client->domain ?>"><img alt="Logo" src="/holmes/bmm/inc/img/admin/client_logo.png" /></a></div>
+				<div class="logo-wrap"><a href="http://www.<?php echo $client->domain ?>"><img alt="Logo" src="bmm/inc/img/admin/client_logo.png" /></a></div>
 				<h2 class="text-center">Remover subscri&ccedil;&atilde;o</h2>
 
 				<!-- content starts here -->
