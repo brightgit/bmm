@@ -108,9 +108,24 @@ class Dashboard {
 		}
 
 		//query
-		$sql = "SELECT COUNT(id) AS total FROM subscribers WHERE MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " UNION SELECT COUNT(id) AS total FROM subscribers WHERE MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " AND YEAR(date_created) = ".$prev_year;
+		$sql = "SELECT COUNT(subscribers.id) AS total 
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
+			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
+			left join user_permissions on user_permissions.group_id = user_groups.id
+			left join users on user_permissions.user_id = users.id
+			WHERE MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["subscritores_bars_users"].")
+			UNION 
+			SELECT COUNT(subscribers.id) AS total 
+				FROM subscribers 
+				left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
+				left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
+				left join user_permissions on user_permissions.group_id = user_groups.id
+				left join users on user_permissions.user_id = users.id
+				WHERE MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
+					AND YEAR(date_created) = ".$prev_year;
 		//echo "<hr />" . $sql . "<hr />";
-		$query = mysql_query($sql);
+		$query = mysql_query($sql) or die( mysql_error() );
 
 		while ($row = mysql_fetch_object($query)) {
 			$output[] = $row;
