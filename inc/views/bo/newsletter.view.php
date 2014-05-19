@@ -184,7 +184,7 @@ class ViewNewsletter {
 	}
 
 	public function duplicate_message($id){
-		$sql = "INSERT INTO mensagens (`id`, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem`, `estado`, `estado_code`) ( SELECT  NULL, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem`, `estado`, `estado_code` FROM mensagens WHERE id = {$id})";
+		$sql = "INSERT INTO mensagens (`id`, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem`) ( SELECT  NULL, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem` FROM mensagens WHERE id = {$id})";
 		$query = mysql_query($sql);
 
 		//buscar o id da newsletter replicada
@@ -574,30 +574,30 @@ function enviar($id = -1){
 					<option>Seleccione um remetente</option>
 					<?php foreach ($sender_permissions as $key => $email): ?>
 					<option value="<?php echo $key ?>"><?php echo $email["email_from"] ?> - <?php echo $email["email"] ?></option>
-					<?php endforeach ?>
-				</select>
+				<?php endforeach ?>
+			</select>
 
-				<br /><br />
+			<br /><br />
 
-				<label>Destinatários</label>
-				
+			<label>Destinatários</label>
 
-				<label class="checbox">
-					<input type="checkbox" class="select-all" />
-					Todos
-				</label>
 
-				<?php foreach ($groups as $group): ?>
-				<label class="checkbox">
-					<input type="checkbox" name="groups[]" value="<?php echo $group->id ?>" />
-					<?php echo $group->categoria ?>
-				</label>
-			<?php endforeach ?>
+			<label class="checbox">
+				<input type="checkbox" class="select-all" />
+				Todos
+			</label>
 
-		</div>
+			<?php foreach ($groups as $group): ?>
+			<label class="checkbox">
+				<input type="checkbox" name="groups[]" value="<?php echo $group->id ?>" />
+				<?php echo $group->categoria ?>
+			</label>
+		<?php endforeach ?>
+
 	</div>
+</div>
 
-	<input type="submit" name="enviar_grupo" value="Enviar" class="btn btn-danger" />
+<input type="submit" name="enviar_grupo" value="Enviar" class="btn btn-danger" />
 
 </form>
 <?php
@@ -671,66 +671,86 @@ function add_mensagem($id = -1, $mensagem = false){
 
 
 	?>
-	<div class="main_div">
+	<div class="main_div row-fluid">
 		<?php if ( $id==-1 ) { ?>
 		<h1>A adicionar newsletter</h1>
 		<?php }else{ ?>
 		<h1>A editar mensagem</h1>
 		<?php } ?>
 		<form action="?mod=newsletter&amp;view=messages" method="post" accept-charset="utf-8">
-			<input type="hidden" name="mensagem_id" value="<?php echo $mensagem->id; ?>" />
 
-			<a href="?mod=newsletter&amp;view=messages" class="btn"><?php echo _('Voltar');?></a>
-			<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
-			<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
+
+
+		<div class="span9 well">
+			<label for="mensagem">Mensagem (Email)</label>
+			<?php $this->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
+
 			<br />
 
-			<label for="assunto">Assunto: </label>
-			<input id="assunto" maxlength="500" required="required" type="text" class="input-long required" name="assunto" value="<?php echo $mensagem->assunto; ?>" />
-			<!--label for="url">Url: </label>
-			<input id="url" maxlength="128" required="required" type="text" class="input-long required" name="url" value="<?php echo $mensagem->url; ?>"/-->
+			<label for="mensagem_browser">Mensagem (Browser)</label>
 
-			<label>Garantir permiss&otilde;es a:</label>
-			<?php $users_with_permission = $this->get_users_with_permission_in_newsletter($mensagem->id) ?>
-			<?php $users = $this->get_users(); ?>
+			<?php $this->getCkEditor()->editor("mensagem_browser", ($mensagem->mensagem_browser)); ?>
 
-			<ul>
-				<?php foreach ($users as $user): ?>
-				<?php $checked = (@array_key_exists($user->id, $users_with_permission)) ? "checked=\"checked\"":""; ?>
-				<?php if($user->id == $_SESSION["user"]->id) $force_checked = "checked=\"checked\""; else $force_checked = ""; ?>
-				<li><input <?php echo $checked ?> <?php echo $force_checked; ?> type="checkbox" name="user_permissions[]" value="<?php echo $user->id?>" /> <?php echo $user->first_name . " " . $user->last_name ?></li>
-			<?php endforeach ; ?>
-		</ul>
+			<br />
 
-		<label for="mensagem" style="clear:both;">Mensagem</label>
-		<small>Esta ser&aacute; a mensagem enviada por email. <br />Se utilizar a diretriz <b>{ver_no_browser}</b> tal será substituida pelo link para visualização no browser.<br />A diretriz <b>{remover_email}</b> tal serrá substituida pelo link para remover o email da lista de subscritores.</small>
-		<?php $this->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
+			<div class="alert alert-info">O campo <strong>mensagem texto</strong>, permite a clientes de email apresentar uma mensagem alternativa à newsletter, quando a apresentação de conteúdo em HTML está desabilitado. O texto utilizado é também lido por filtros de SPAM e ao representar uma alternativa textual ao conteúdo da newsletter, aumenta a probabilidade de entrega. É recomendado o preenchimento deste campo com um texto sem formatação HTML.</div>
 
-		<br />
-		<br />
+			<label for="mensagem_text">Mensagem texto</label>
+			<textarea cols="80" rows="5" name="mensagem_text"><?php echo $mensagem->mensagem_text ?></textarea>
 
-		<label for="mensagem_browser">Mensagem Browser</label>
+			<div class="clear"></div>
 
-		<br />
-		<br />
+			<br />
+			<br />
 
-		<?php $this->getCkEditor()->editor("mensagem_browser", ($mensagem->mensagem_browser)); ?>
+			<div class="pull-right">
+				<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
+				<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
+				<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+			</div>
+		</div>
 
-		<br />
+		<div class="span3 well">
+				<input type="hidden" name="mensagem_id" value="<?php echo $mensagem->id; ?>" />
 
-		<label for="mensagem_text">Mensagem texto</label>
-		<textarea cols="80" rows="5" name="mensagem_text"><?php echo $mensagem->mensagem_text ?></textarea>
+				<label>Assunto: </label>
+				<input maxlength="500" required="required" type="text" class="span12 required" name="assunto" value="<?php echo $mensagem->assunto; ?>" />
+				<label>URL: </label>
+				<input maxlength="128" required="required" type="text" class="span12" name="url" value="<?php echo $mensagem->url; ?>"/>
 
-		<div class="clear"></div>
+				<label>Garantir permiss&otilde;es a:</label>
+				<?php $users_with_permission = $this->get_users_with_permission_in_newsletter($mensagem->id) ?>
+				<?php $users = $this->get_users(); ?>
 
-		<br />
-		<br />
+				<ul>
+					<?php foreach ($users as $user): ?>
+					<?php $checked = (@array_key_exists($user->id, $users_with_permission)) ? "checked=\"checked\"":""; ?>
+					<?php if($user->id == $_SESSION["user"]->id) $force_checked = "checked=\"checked\""; else $force_checked = ""; ?>
+					<li><input <?php echo $checked ?> <?php echo $force_checked; ?> type="checkbox" name="user_permissions[]" value="<?php echo $user->id?>" /> <?php echo $user->first_name . " " . $user->last_name ?></li>
+					<?php endforeach ; ?>
+				</ul>
 
-		<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
-		<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
-		<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
-	</ul>
-</form>
+				<label>Directrizes / Alias:</label>
+				<dl>
+					<dt>{ver_no_browser}</dt>
+						<dd>Link de visualização on-line</dd>
+					<dt>{remover_email}</dt>
+						<dd>Link para remoção da mailing list</dd>
+					<dt>{saudacao}</dt>
+					<dt>{idade}</dt>
+					<dt>{campo:db_name}	</dt>
+				</dl>
+				
+
+			<div class="pull-right">
+				<a href="?mod=newsletter&amp;view=messages" class="btn"><?php echo _('Voltar');?></a>
+				<input type="submit" class="btn btn-success" name="submit" value="Guardar" />
+				<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+			</div>
+
+		</div>
+
+	</form>
 </div>
 
 <?php
@@ -802,35 +822,35 @@ function pre_send($id = -1){
 					<option>Seleccione um remetente</option>
 					<?php foreach ($sender_permissions as $key => $email): ?>
 					<option value="<?php echo $key ?>"><?php echo $email["email_from"] ?> - <?php echo $email["email"] ?></option>
-					<?php endforeach ?>
-				</select>
+				<?php endforeach ?>
+			</select>
 
-				<p><i class="icon-info-sign"></i> <small>Ir&aacute; enviar esta newsletter para o endere&ccedil;o introduzido abaixo</small></p>
-				<input type="hidden" name="mensagem_id" value="<?php echo $_GET["id"] ?>" />
-				<label class="" for="text_email">Email de destino: </label>
-			</div>
-			<input type="text" name="text_email" id="text_email" />
-			<!--input type="submit" class="submit btn btn-info" value="Enviar" /-->
-			<input type="button" class="mandril-btn submit btn btn-info" value="Enviar" />
+			<p><i class="icon-info-sign"></i> <small>Ir&aacute; enviar esta newsletter para o endere&ccedil;o introduzido abaixo</small></p>
+			<input type="hidden" name="mensagem_id" value="<?php echo $_GET["id"] ?>" />
+			<label class="" for="text_email">Email de destino: </label>
 		</div>
-		<!--/p-->
-	</form>
-
-	<h2 style="text-align:left;">Informação geral: </h2>
-	<div class="well">
-		<!-- Informação -->
-		<p style="text-align:left;"><span>Estado: </span> <span class="label label-info"><?php echo $mensagem->estado; ?></span></p>
-		<p style="text-align:left;"><span>Último Update:</span> <b><?php echo $tools->timestamp_to_jan($mensagem->data_update); ?></b></p>
-		<p style="text-align:left;"><span>Data Criação:</span> <b><?php echo $tools->timestamp_to_jan($mensagem->data_criada); ?></b></p>
+		<input type="text" name="text_email" id="text_email" />
+		<!--input type="submit" class="submit btn btn-info" value="Enviar" /-->
+		<input type="button" class="mandril-btn submit btn btn-info" value="Enviar" />
 	</div>
+	<!--/p-->
+</form>
+
+<h2 style="text-align:left;">Informação geral: </h2>
+<div class="well">
+	<!-- Informação -->
+	<p style="text-align:left;"><span>Estado: </span> <span class="label label-info"><?php echo $mensagem->estado; ?></span></p>
+	<p style="text-align:left;"><span>Último Update:</span> <b><?php echo $tools->timestamp_to_jan($mensagem->data_update); ?></b></p>
+	<p style="text-align:left;"><span>Data Criação:</span> <b><?php echo $tools->timestamp_to_jan($mensagem->data_criada); ?></b></p>
+</div>
 
 
-	<h2 style="text-align:left;">Emails teste já enviados: </h2>
+<h2 style="text-align:left;">Emails teste já enviados: </h2>
 
-	<?php $res = $this->mod->get_send_test($_GET['id']); ?>
-	
+<?php $res = $this->mod->get_send_test($_GET['id']); ?>
 
-	<?php if(mysql_num_rows($res) > 0): ?>
+
+<?php if(mysql_num_rows($res) > 0): ?>
 
 	<table class="table">
 		<tr>
@@ -1606,336 +1626,336 @@ function showMessages(){
 									<td><?php echo $row['estado']; ?></td>
 								-->
 								
-									<td>
-										<div class="table-actions">
-											<a rel="tooltip-top" data-original-title="Editar" class="btn" href="?mod=newsletter&amp;view=add_mensagem&amp;id=<?php echo $row['id']?>"><i class="icon icon-pencil"></i></a>
-											<a rel="tooltip-top" data-original-title="Estat&iacute;sticas" href="?mod=newsletter&amp;view=statistics&amp;id=<?php echo $row['id']; ?>" class="btn"><i class="icon icon-align-left"></i></a>
-											<a rel="tooltip-top" data-original-title="Replicar" class="btn" href="?mod=newsletter&amp;view=messages&amp;duplicate=<?php echo $row["id"] ?>"><i class="icon icon-resize-full"></i></a>
-											<a rel="tooltip-top" data-original-title="Remover" class="btn btn-danger" href="?mod=newsletter&amp;view=messages&amp;remove=<?php echo $row["id"] ?>"><i class="icon-white icon-remove"></i></a>
-											<a rel="tooltip-top" data-original-title="Preparar envio" class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $row['id']; ?>"><i class="icon-white icon-share"></i></a>
-										</div>
-									</td>
-								</tr>
-								<?php
-							}
+								<td>
+									<div class="table-actions">
+										<a rel="tooltip-top" data-original-title="Editar" class="btn" href="?mod=newsletter&amp;view=add_mensagem&amp;id=<?php echo $row['id']?>"><i class="icon icon-pencil"></i></a>
+										<a rel="tooltip-top" data-original-title="Estat&iacute;sticas" href="?mod=newsletter&amp;view=statistics&amp;id=<?php echo $row['id']; ?>" class="btn"><i class="icon icon-align-left"></i></a>
+										<a rel="tooltip-top" data-original-title="Replicar" class="btn" href="?mod=newsletter&amp;view=messages&amp;duplicate=<?php echo $row["id"] ?>"><i class="icon icon-resize-full"></i></a>
+										<a rel="tooltip-top" data-original-title="Remover" class="btn btn-danger" href="?mod=newsletter&amp;view=messages&amp;remove=<?php echo $row["id"] ?>"><i class="icon-white icon-remove"></i></a>
+										<a rel="tooltip-top" data-original-title="Preparar envio" class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $row['id']; ?>"><i class="icon-white icon-share"></i></a>
+									</div>
+								</td>
+							</tr>
+							<?php
 						}
-						?>
-					</tbody>
-				</table>
-
-			</div>
-			<?php
-
-		}
-
-		function get_utilizador($id){
-			$sql = "SELECT * FROM users WHERE id = ".$id;
-			$query = mysql_query($sql);
-
-			if($query)
-				return mysql_fetch_object($query);
-
-			return false;
-		}
-
-		function get_user_groups(){
-			$sql = "SELECT id, name FROM user_groups";
-			$query = mysql_query($sql);
-
-			if($query){
-				while($row = mysql_fetch_object($query))
-					$output[] = $row;
-
-				return $output;
-			}
-
-			return false;
-
-		}
-
-		function render_user_groups($group_id){
-			$groups = $this->get_user_groups();
-
-			foreach ($groups as $group) {
-				$selected = ($group->id == $group_id) ? "selected=\"selected\"" : "";
-				echo "<option ".$selected." value=\"".$group->id."\">".$group->name."</option>";
-			}
-		}
-
-		function update_user_permissions($user_id, $permissions){
-
-			if(!empty($user_id) && count($permissions) > 0){
-			//apagar tudo primeiro
-				$sql = "DELETE FROM user_permissions WHERE user_id = {$user_id}";
-				$delete = mysql_query($sql);
-
-				foreach ($permissions as $garbagekey => $group_id) {
-					$sql = "INSERT INTO user_permissions (user_id, group_id) VALUES ({$user_id}, {$group_id})";
-					$insert = mysql_query($sql);
-				}
-				return true;
-			}
-
-			else
-				tools::notify_add("N&atilde;o foram definidas permissões de mailing lists para o utilizador", "info");
-
-		}
-
-		function update_sender_permissions($user_id, $permissions){
-
-			//apagar tudo primeiro
-			$sql = "DELETE FROM user_sender_permissions WHERE user_id = {$user_id}";
-			$delete = mysql_query($sql);
-
-			if(!empty($user_id) && count($permissions) > 0){
-
-				foreach ($permissions as $garbagekey => $sender_id) {
-					$sql = "INSERT INTO user_sender_permissions (user_id, sender_id) VALUES ({$user_id}, {$sender_id})";
-					$insert = mysql_query($sql);
-				}
-
-				tools::notify_add("Definições do utilizador actualizadas com sucesso", "success");
-
-				return true;
-			}
-
-			else
-				tools::notify_add("Não foram definidas permissões para o utilizador", "info");		
-		}
-
-		function update_user($id){
-
-			$user_username = $_POST["user_username"];
-			$user_first_name = $_POST["user_first_name"];
-			$user_last_name = $_POST["user_last_name"];
-			$user_email = $_POST["user_email"];
-			$is_active = isset($_POST["is_active"]) ? 1:0;
-			$user_password = $_POST["user_password"];
-			$user_group = $_POST["user_group"];
-			$user_group_permissions = $_POST["user_group_permissions"];
-			$user_sender_permissions = $_POST["user_sender_permissions"];
-
-
-		//update à password
-			if(!empty($user_password))
-				$sql_password = "`password` = '".md5($user_password)."', ";
-
-		//update ao user
-			$sql = "UPDATE `users` SET `first_name` = '{$user_first_name}', `last_name` = '{$user_last_name}', `username` = '{$user_username}', `email` = '{$user_email}', ".$sql_password." `is_active` = {$is_active}, `user_group` = {$user_group} WHERE id = {$id}";
-
-			$query = mysql_query($sql);
-
-		//update as permissoes
-			$this->update_user_permissions($id, $user_group_permissions);
-			$this->update_sender_permissions($id, $user_sender_permissions);
-
-		//
-			unset($_POST);
-
-			$this->show_utilizador($id);
-
-		}
-
-		function insert_user(){
-
-			$user_username = $_POST["user_username"];
-			$user_first_name = $_POST["user_first_name"];
-			$user_last_name = $_POST["user_last_name"];
-			$user_email = $_POST["user_email"];
-			$is_active = isset($_POST["is_active"]) ? 1:0;
-			$user_password = $_POST["user_password"];
-			$user_group = $_POST["user_group"];
-			$user_group_permissions = $_POST["user_group_permissions"];
-
-		//insert do user
-			$sql = "INSERT INTO `users` (`first_name`, `last_name`, `username`, `email`, `password`, `is_active`, `user_group`) VALUES ( '{$user_first_name}', '{$user_last_name}', '{$user_username}', '{$user_email }', '".md5($user_password)."', {$is_active}, {$user_group})";
-			$query = mysql_query($sql);
-
-			if($query)
-				tools::notify_add("Dados de utilizador gravados com sucesso", "success");				
-
-		//buscar user id
-			$sql = "SELECT MAX(id) AS id FROM users";
-			$query = mysql_query($sql);
-
-			$user_id = mysql_fetch_object($query)->id;
-
-		//update as permissoes do user criado
-			$this->update_user_permissions($user_id, $user_group_permissions);
-
-		//limpar
-			unset($_POST);
-
-			$this->show_utilizador($user_id);
-
-		}
-
-		function show_utilizador($id){
-
-			if(isset($_POST["save"])):
-				switch ($id) {
-					case 0:
-					$this->insert_user();
-					break;
-
-					default:
-					$this->update_user($id);
-					break;
-				}			
-
-				else:
-
-			//user info
-					$user = $this->get_utilizador($id);
-
-				?>
-
-				<h1>A editar utilizador</h1>
-
-				<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
-
-				<br />
-				<br />
-
-				<div class="well">
-					<form action="" method="post">
-
-						<label>Username:</label>
-						<input type="text" name="user_username" value="<?php echo $user->username ?>" />
-
-						<label>Primeiro nome:</label>
-						<input type="text" name="user_first_name" value="<?php echo $user->first_name ?>" />
-
-						<label>Último nome:</label>
-						<input type="text" name="user_last_name" value="<?php echo $user->last_name ?>" />
-
-						<label>E-mail:</label>
-						<input type="text" name="user_email" value="<?php echo $user->email ?>" />
-
-						<label>Activo:</label>
-						<span>Sim</span>
-						<input type="radio" name="is_active" <?php echo ($user->is_active == 1) ? "checked=\"checked\"":"" ?> />
-
-						<span>N&atilde;o</span>
-						<input type="radio" name="is_active" <?php echo ($user->is_active == 0) ? "checked=\"checked\"":"" ?> />
-
-						<label>(Re)definir senha:</label>
-						<input type="password" name="user_password" value="" />
-
-						<label>Tipo de utilizador:</label>
-						<select name="user_group">
-							<?php $this->render_user_groups($user->user_group); ?>
-						</select>
-
-						<h2>Permiss&otilde;es sobre as seguintes mailing lists</h2>
-
-						<?php 
-							$groups = $this->get_grupos(); 
-							$senders = $this->get_senders();
-						?>
-
-						<ul>
-
-							<?php foreach($groups as $grupo): ?>
-							<?php $user_permissions = $this->get_group_permissions($user->id); ?>
-							<?php $checked = (@array_key_exists($grupo->id, $user_permissions)) ? "checked=\"checked\"":""; ?>
-
-							<li><input value="<?php echo $grupo->id ?>"  type="checkbox" name="user_group_permissions[]" <?php echo $checked ?> /> <span><?php echo $grupo->categoria ?></span></li>
-
-							<?php endforeach ?>
-
-						</ul>
-
-						<h2>Pode enviar de</h2>
-
-						<ul>
-							<?php foreach ($senders as $sender): ?>
-							<?php $sender_permissions = $this->get_sender_permissions($user->id); ?>
-							<?php $checked = (@array_key_exists($sender->id, $sender_permissions)) ? "checked=\"checked\"":""; ?>
-							<li><input value="<?php echo $sender->id ?>"  type="checkbox" name="user_sender_permissions[]" <?php echo $checked ?> /> <span><?php echo $sender->email_from ?> (<b><?php echo $sender->email ?></b>)</span></li>
-							<?php endforeach ?>
-							
-						</ul>
-
-					<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar" />
-					<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
-
-				</form>
-			</div>
-
-		<?php endif; ?>
-
-		<?php 
-	}
-
-	function remove_utilizador($id){
-		$id = intval($id);
-
-		$sql = "DELETE FROM users WHERE id = {$id}";
-		$query = mysql_query($sql);
-
-		$sql = "DELETE FROM user_permissions WHERE user_id = {$id}";
-		$query = mysql_query($sql);
-
-		echo "<div class=\"alert alert-success\">Utilizador e permiss&otilde;es associadas removidas com sucesso</div> ";
-	}
-
-	function show_utilizadores(){
-
-		if(isset($_GET["remove"]))
-			$this->remove_utilizador($_GET["remove"]);
-
-		if($_GET["id"] == 0 && isset($_GET["id"]))
-			$this->show_utilizador(0);
-
-		if(($_GET["id"]) > 0)
-			$this->show_utilizador($_GET["id"]);
-
-		else{
-			$users = $this->get_users();
-
-			?>
-			<div class="main_div">
-				<h1>Utilizadores</h1>
-				<a href="?mod=newsletter&amp;view=utilizadores&amp;id=0" class="add-new-news btn btn-success"><i class="icon-white icon-plus-sign"></i> <?php echo _('Adicionar Utilizador');?></a>
-
-				<br />
-				<br />
-				<div class="clear"></div>
-
-
-				<table class="addpadding table" id="datasort">
-					<thead>
-						<tr>
-							<th>Nome</th>
-							<th>Data Criação</th>
-							<th>Permissões em:</th>
-							<th>Estado</th>
-							<th>Administrador</th>
-							<th class="nosrot">Remover</th>
-						</tr>
-					</thead>
-
-					<tbody>
-						<?php foreach ($users as $user): ?>
-						<?php $group_permissions = $this->get_group_permissions($user->id); ?>
-						<tr>
-							<td><a href="?mod=newsletter&amp;view=utilizadores&amp;id=<?php echo $user->id ?>"><?php echo $user->first_name . " " . $user->last_name ?></a></td>
-							<td><?php echo $user->date_joined ?></td>
-							<td><?php $this->render_group_permissions( intval($user->is_admin), $group_permissions); ?> </td>
-							<td><?php Core::draw_boolean_status($user->is_active) ?></td>
-							<td><?php Core::draw_boolean_status($user->is_admin) ?></td>
-							<td><a class="btn btn-danger" href="?mod=newsletter&amp;view=utilizadores&amp;remove=<?php echo $user->id ?>"><i class="icon-white icon-remove"></i> Remover</a></td>
-						</tr>
-					<?php endforeach; ?>
+					}
+					?>
 				</tbody>
 			</table>
 
 		</div>
-
 		<?php
 
 	}
+
+	function get_utilizador($id){
+		$sql = "SELECT * FROM users WHERE id = ".$id;
+		$query = mysql_query($sql);
+
+		if($query)
+			return mysql_fetch_object($query);
+
+		return false;
+	}
+
+	function get_user_groups(){
+		$sql = "SELECT id, name FROM user_groups";
+		$query = mysql_query($sql);
+
+		if($query){
+			while($row = mysql_fetch_object($query))
+				$output[] = $row;
+
+			return $output;
+		}
+
+		return false;
+
+	}
+
+	function render_user_groups($group_id){
+		$groups = $this->get_user_groups();
+
+		foreach ($groups as $group) {
+			$selected = ($group->id == $group_id) ? "selected=\"selected\"" : "";
+			echo "<option ".$selected." value=\"".$group->id."\">".$group->name."</option>";
+		}
+	}
+
+	function update_user_permissions($user_id, $permissions){
+
+		if(!empty($user_id) && count($permissions) > 0){
+			//apagar tudo primeiro
+			$sql = "DELETE FROM user_permissions WHERE user_id = {$user_id}";
+			$delete = mysql_query($sql);
+
+			foreach ($permissions as $garbagekey => $group_id) {
+				$sql = "INSERT INTO user_permissions (user_id, group_id) VALUES ({$user_id}, {$group_id})";
+				$insert = mysql_query($sql);
+			}
+			return true;
+		}
+
+		else
+			tools::notify_add("N&atilde;o foram definidas permissões de mailing lists para o utilizador", "info");
+
+	}
+
+	function update_sender_permissions($user_id, $permissions){
+
+			//apagar tudo primeiro
+		$sql = "DELETE FROM user_sender_permissions WHERE user_id = {$user_id}";
+		$delete = mysql_query($sql);
+
+		if(!empty($user_id) && count($permissions) > 0){
+
+			foreach ($permissions as $garbagekey => $sender_id) {
+				$sql = "INSERT INTO user_sender_permissions (user_id, sender_id) VALUES ({$user_id}, {$sender_id})";
+				$insert = mysql_query($sql);
+			}
+
+			tools::notify_add("Definições do utilizador actualizadas com sucesso", "success");
+
+			return true;
+		}
+
+		else
+			tools::notify_add("Não foram definidas permissões para o utilizador", "info");		
+	}
+
+	function update_user($id){
+
+		$user_username = $_POST["user_username"];
+		$user_first_name = $_POST["user_first_name"];
+		$user_last_name = $_POST["user_last_name"];
+		$user_email = $_POST["user_email"];
+		$is_active = isset($_POST["is_active"]) ? 1:0;
+		$user_password = $_POST["user_password"];
+		$user_group = $_POST["user_group"];
+		$user_group_permissions = $_POST["user_group_permissions"];
+		$user_sender_permissions = $_POST["user_sender_permissions"];
+
+
+		//update à password
+		if(!empty($user_password))
+			$sql_password = "`password` = '".md5($user_password)."', ";
+
+		//update ao user
+		$sql = "UPDATE `users` SET `first_name` = '{$user_first_name}', `last_name` = '{$user_last_name}', `username` = '{$user_username}', `email` = '{$user_email}', ".$sql_password." `is_active` = {$is_active}, `user_group` = {$user_group} WHERE id = {$id}";
+
+		$query = mysql_query($sql);
+
+		//update as permissoes
+		$this->update_user_permissions($id, $user_group_permissions);
+		$this->update_sender_permissions($id, $user_sender_permissions);
+
+		//
+		unset($_POST);
+
+		$this->show_utilizador($id);
+
+	}
+
+	function insert_user(){
+
+		$user_username = $_POST["user_username"];
+		$user_first_name = $_POST["user_first_name"];
+		$user_last_name = $_POST["user_last_name"];
+		$user_email = $_POST["user_email"];
+		$is_active = isset($_POST["is_active"]) ? 1:0;
+		$user_password = $_POST["user_password"];
+		$user_group = $_POST["user_group"];
+		$user_group_permissions = $_POST["user_group_permissions"];
+
+		//insert do user
+		$sql = "INSERT INTO `users` (`first_name`, `last_name`, `username`, `email`, `password`, `is_active`, `user_group`) VALUES ( '{$user_first_name}', '{$user_last_name}', '{$user_username}', '{$user_email }', '".md5($user_password)."', {$is_active}, {$user_group})";
+		$query = mysql_query($sql);
+
+		if($query)
+			tools::notify_add("Dados de utilizador gravados com sucesso", "success");				
+
+		//buscar user id
+		$sql = "SELECT MAX(id) AS id FROM users";
+		$query = mysql_query($sql);
+
+		$user_id = mysql_fetch_object($query)->id;
+
+		//update as permissoes do user criado
+		$this->update_user_permissions($user_id, $user_group_permissions);
+
+		//limpar
+		unset($_POST);
+
+		$this->show_utilizador($user_id);
+
+	}
+
+	function show_utilizador($id){
+
+		if(isset($_POST["save"])):
+			switch ($id) {
+				case 0:
+				$this->insert_user();
+				break;
+
+				default:
+				$this->update_user($id);
+				break;
+			}			
+
+			else:
+
+			//user info
+				$user = $this->get_utilizador($id);
+
+			?>
+
+			<h1>A editar utilizador</h1>
+
+			<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
+
+			<br />
+			<br />
+
+			<div class="well">
+				<form action="" method="post">
+
+					<label>Username:</label>
+					<input type="text" name="user_username" value="<?php echo $user->username ?>" />
+
+					<label>Primeiro nome:</label>
+					<input type="text" name="user_first_name" value="<?php echo $user->first_name ?>" />
+
+					<label>Último nome:</label>
+					<input type="text" name="user_last_name" value="<?php echo $user->last_name ?>" />
+
+					<label>E-mail:</label>
+					<input type="text" name="user_email" value="<?php echo $user->email ?>" />
+
+					<label>Activo:</label>
+					<span>Sim</span>
+					<input type="radio" name="is_active" <?php echo ($user->is_active == 1) ? "checked=\"checked\"":"" ?> />
+
+					<span>N&atilde;o</span>
+					<input type="radio" name="is_active" <?php echo ($user->is_active == 0) ? "checked=\"checked\"":"" ?> />
+
+					<label>(Re)definir senha:</label>
+					<input type="password" name="user_password" value="" />
+
+					<label>Tipo de utilizador:</label>
+					<select name="user_group">
+						<?php $this->render_user_groups($user->user_group); ?>
+					</select>
+
+					<h2>Permiss&otilde;es sobre as seguintes mailing lists</h2>
+
+					<?php 
+					$groups = $this->get_grupos(); 
+					$senders = $this->get_senders();
+					?>
+
+					<ul>
+
+						<?php foreach($groups as $grupo): ?>
+						<?php $user_permissions = $this->get_group_permissions($user->id); ?>
+						<?php $checked = (@array_key_exists($grupo->id, $user_permissions)) ? "checked=\"checked\"":""; ?>
+
+						<li><input value="<?php echo $grupo->id ?>"  type="checkbox" name="user_group_permissions[]" <?php echo $checked ?> /> <span><?php echo $grupo->categoria ?></span></li>
+
+					<?php endforeach ?>
+
+				</ul>
+
+				<h2>Pode enviar de</h2>
+
+				<ul>
+					<?php foreach ($senders as $sender): ?>
+					<?php $sender_permissions = $this->get_sender_permissions($user->id); ?>
+					<?php $checked = (@array_key_exists($sender->id, $sender_permissions)) ? "checked=\"checked\"":""; ?>
+					<li><input value="<?php echo $sender->id ?>"  type="checkbox" name="user_sender_permissions[]" <?php echo $checked ?> /> <span><?php echo $sender->email_from ?> (<b><?php echo $sender->email ?></b>)</span></li>
+				<?php endforeach ?>
+
+			</ul>
+
+			<input class="btn btn-primary" type="submit" name="save" value="Inserir / Editar" />
+			<a class="btn" href="?mod=newsletter&amp;view=utilizadores">Voltar</a>
+
+		</form>
+	</div>
+
+<?php endif; ?>
+
+<?php 
+}
+
+function remove_utilizador($id){
+	$id = intval($id);
+
+	$sql = "DELETE FROM users WHERE id = {$id}";
+	$query = mysql_query($sql);
+
+	$sql = "DELETE FROM user_permissions WHERE user_id = {$id}";
+	$query = mysql_query($sql);
+
+	echo "<div class=\"alert alert-success\">Utilizador e permiss&otilde;es associadas removidas com sucesso</div> ";
+}
+
+function show_utilizadores(){
+
+	if(isset($_GET["remove"]))
+		$this->remove_utilizador($_GET["remove"]);
+
+	if($_GET["id"] == 0 && isset($_GET["id"]))
+		$this->show_utilizador(0);
+
+	if(($_GET["id"]) > 0)
+		$this->show_utilizador($_GET["id"]);
+
+	else{
+		$users = $this->get_users();
+
+		?>
+		<div class="main_div">
+			<h1>Utilizadores</h1>
+			<a href="?mod=newsletter&amp;view=utilizadores&amp;id=0" class="add-new-news btn btn-success"><i class="icon-white icon-plus-sign"></i> <?php echo _('Adicionar Utilizador');?></a>
+
+			<br />
+			<br />
+			<div class="clear"></div>
+
+
+			<table class="addpadding table" id="datasort">
+				<thead>
+					<tr>
+						<th>Nome</th>
+						<th>Data Criação</th>
+						<th>Permissões em:</th>
+						<th>Estado</th>
+						<th>Administrador</th>
+						<th class="nosrot">Remover</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<?php foreach ($users as $user): ?>
+					<?php $group_permissions = $this->get_group_permissions($user->id); ?>
+					<tr>
+						<td><a href="?mod=newsletter&amp;view=utilizadores&amp;id=<?php echo $user->id ?>"><?php echo $user->first_name . " " . $user->last_name ?></a></td>
+						<td><?php echo $user->date_joined ?></td>
+						<td><?php $this->render_group_permissions( intval($user->is_admin), $group_permissions); ?> </td>
+						<td><?php Core::draw_boolean_status($user->is_active) ?></td>
+						<td><?php Core::draw_boolean_status($user->is_admin) ?></td>
+						<td><a class="btn btn-danger" href="?mod=newsletter&amp;view=utilizadores&amp;remove=<?php echo $user->id ?>"><i class="icon-white icon-remove"></i> Remover</a></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+
+	</div>
+
+	<?php
+
+}
 }
 
 function show(){

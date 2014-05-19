@@ -149,7 +149,7 @@ class ViewMass_email {
 				require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
-				$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $_POST['text_email'], $mensagem->id );
+				$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $_POST['text_email'], $mensagem->id);
 
 				$message = array(
 			        'html' => $html_body,

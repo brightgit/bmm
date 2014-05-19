@@ -971,6 +971,9 @@ textarea {
 label {
   display: block;
   margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 12px;
+  margin: 5px 0px;
 }
 
 select,

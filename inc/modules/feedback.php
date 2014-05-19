@@ -193,7 +193,11 @@
 		}
 
 		//recebe uma string de texto e injecta os parametros necessários a fazer o tracking
-		static function inject($html_body, $email, $envio_id, $url){
+		static function inject($mensagem){
+
+			$email = $mensagem->email;
+			$html_body = $mensagem->mensagem;
+			$envio_id = $mensagem->envio_id;
 			
 			//remove token
 			$salt = "bright";
@@ -207,12 +211,34 @@
 				//cria o link de remoção automática
 				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."\">remover</a>", $html_body);
 
-
 				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
 				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
 
 				//cria a imagem escondida
 				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".self::$url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
+
+				//substituição dos matches do tipo {campo:<fieldname>}
+				preg_match_all("/{campo:([a-z-_0-9]*)}/", $html_body, $reg_exp_matches);
+
+				foreach ($reg_exp_matches[0] as $key => $value) {
+					
+					$replace = "subscriber_" . $reg_exp_matches[1][$key];				
+					$html_body = str_replace($value, $mensagem->$replace, $html_body);
+
+				}
+
+				//substituição dos matches pré-feitos {saudacao}
+				if(strpos($html_body, "{saudacao}")){
+					//determinar se é M ou F
+					$saudacao = $mensagem->subscriber_sexo == "M" ? "Caro Sr. " . $mensagem->subscriber_nome : "Cara Srª. " . $mensagem->subscriber_nome;
+					$html_body = str_replace("{saudacao}", $saudacao, $html_body); //subsctituir
+				}
+				
+				if(strpos($html_body, "{idade}")){					
+					$idade = floor((time() - strtotime($mensagem->subscriber_data_nascimento)) /  (60 * 60 * 24 * 365));
+					$html_body = str_replace("{idade}", $idade, $html_body); //subsctituir
+				}
+
 
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
 				return $html_body;

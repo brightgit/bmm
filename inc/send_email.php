@@ -32,13 +32,14 @@ $emails_from = array( $core->settings->sender_email_from => $core->settings->sen
 
 
 
-$query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.email, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
+$query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.id as subscriber_id, subscribers.email as subscriber_email, subscribers.hard_bounces_count as subscriber_hard_bounces_count, subscribers.nome as subscriber_nome, subscribers.data_nascimento as subscriber_data_nascimento, subscribers.sexo as subscriber_sexo, subscribers.telefone_1, subscribers.telefone_2, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
 	from mensagens_enviadas 
 	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
 	inner join subscribers on mensagens_enviadas.destino = subscribers.id 
 	where mensagens.id is not null
 	limit 100
 	";
+
 
 	$res = mysql_query( $query ) or die( mysql_error() );
 	if(mysql_num_rows($res) == 0 ){	//No messages to be sent.
@@ -54,7 +55,10 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		//echo '1';
 		//Mensagem
 		$to = array($mensagem->email => $mensagem->email);
-		$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $mensagem->email, $mensagem->envio_id, $mensagem->url);
+		$html_body = BRIGHT_mail_feedback::inject($mensagem); //passa a receber apenas um parâmetro (informação da newsletter + informação do subscriber num object)
+
+		var_dump($html_body);
+		die();
 
 		//Meter nos stats
 		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";
@@ -68,7 +72,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		}
 
 		//Mandrill
-		if (false) {
+		if (true) {
 			require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
@@ -80,7 +84,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 			        'from_name' => $core->settings->sender_name,
 			        'to' => array(
 			            array(
-			                'email' => $mensagem->email,
+			                'email' => $mensagem->subscruber_email,
 			                'name' => false,
 			                'type' => 'to'
 			            )
