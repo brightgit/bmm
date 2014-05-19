@@ -35,7 +35,10 @@ class Core {
 		$base_path = "C:/xampp/htdocs/bmm";
 		#$base_path = "/Users/bright/Documents/htdocs/bmm"; //force override
 
+		error_reporting( E_ALL );
+
 		self::load_general_functions();
+		$base_path = base_path();
 
 		//dependencies
 		require_once $base_path . '/inc/Debug.class.php';

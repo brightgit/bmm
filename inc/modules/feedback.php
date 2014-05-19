@@ -68,7 +68,11 @@
 			$this->envio_id = intval( strip_tags($_GET["envio_id"]) );
 			$this->ip = $_SERVER["REMOTE_ADDR"];
 			$this->user_agent = $_SERVER['HTTP_USER_AGENT'];
-			$this->referer = $_SERVER["HTTP_REFERER"];
+			if (isset($_SERVER["HTTP_REFERER"])) {
+				$this->referer = $_SERVER["HTTP_REFERER"];
+			}else{
+				$this->referer = "";
+			}
 
 		}
 
@@ -223,13 +227,14 @@
 		}
 
 		static function inject_browser($html_body, $email, $mensagem_id){
+			return $html_body;
 			
 			//remove token
 			$salt = "bright";
 			$remove_token = md5($email.$salt);
-			$client_id = self::get_client_id();
+			//$client_id = self::get_client_id();
 
-			if(is_numeric($client_id)){
+			//if(is_numeric($client_id)){
 
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
 				//$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."?client=".$client_id."&mensagem_id=".$mensagem_id."&email=".$email."\">ver no browser</a>", $html_body);
@@ -245,10 +250,10 @@
 				//cria a imagem escondida
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
 				return $html_body;
-			}
+			/*}
 				
 			else
-				return $html_body;
+				return $html_body;*/
 		}
 
 		//regista um click num link numa determinada newsletter

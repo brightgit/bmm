@@ -127,12 +127,12 @@ class ViewMass_email {
 	function send_test_email(){
 
 		//Recebe os valores por POST;
-		$query = "SELECT * FROM `mensagens` WHERE `id`='".$_POST['mensagem_id']."'";
+		$query = "SELECT mensagens.* FROM `mensagens` WHERE `id`='".$_POST['mensagem_id']."'";
 		$res = mysql_query($query) or die(mysql_error());
 		if($mensagem = mysql_fetch_object($res)){
 
 			//envio via Mandril
-			if(isset($_GET["mandrill"]) && $_GET["mandrill"] == "true"){
+			if( true){
 
 				//obter dados de envio (sender && user)
 				$user_id = $_SESSION["user"]->id; //info do user que submeteu o envio
@@ -149,7 +149,7 @@ class ViewMass_email {
 				require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
-				$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $_POST['text_email'], $mensagem->id );
+				$html_body = BRIGHT_mail_feedback::inject($mensagem->mensagem, $_POST['text_email'], $mensagem->id, "mensagem-teste" );
 
 				$message = array(
 			        'html' => $html_body,
@@ -201,7 +201,7 @@ class ViewMass_email {
 			    if ($sent_mandrill)
 				{
 				
-					BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
+					//BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
 
 					$sql = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string( $mensagem->mensagem )."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'sucesso')";
 					$query = mysql_query($sql);
