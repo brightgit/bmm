@@ -1221,11 +1221,15 @@ transform: rotateY(180deg);
 .back-settings label{
 	font-weight: bold;
 	color:#545454;
-	margin:15px 0px 10px 0px;
+	margin:15px 0px 0px 0px;
 }
 
 .back-settings input[type="checkbox"]{
 	margin:0;
+}
+.back-settings input[type="submit"]{
+	margin-top:5px;
+	float: right;
 }
 
 .back-settings .setting-inline{

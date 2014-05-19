@@ -14,6 +14,7 @@ class Dashboard {
 	public $total_sent_last_semester;
 	public $total_subscribers_last_time_interval;
 	public $total_exclusion_requests_time_interval;
+	public $all_users;
 
 	function __construct() {
 
@@ -37,6 +38,20 @@ class Dashboard {
 		$this->total_newsletter_sends_time_interval = self::total_newsletter_sends_time_interval($_SESSION["totais_stats"]);
 		$this->total_exclusion_requests_time_interval = self::total_exclusion_requests_time_interval($_SESSION["totais_stats"]);
 
+		$this->all_users = $this->get_all_users();
+
+	}
+
+	function get_all_users() {
+		$query = "select * from users where is_active = 1";
+		$res = mysql_query($query);
+		while ( $row = mysql_fetch_array($res) ) {
+			$aux["name"] = $row["first_name"] . " " . $row["last_name"];
+			$aux["id"] = $row["id"];
+			$ret[] = $aux;
+		}
+		return $ret;
+
 	}
 
 	function set_time_intervals(){
@@ -45,9 +60,17 @@ class Dashboard {
 		$_SESSION["subscritores_bars"] = empty($_SESSION["subscritores_bars"]) ? "trimester" : $_SESSION["subscritores_bars"];
 		$_SESSION["totais_stats"] = empty($_SESSION["totais_stats"]) ? "trimester" : $_SESSION["totais_stats"];
 
+		$_SESSION["envios_pie_users"] = empty($_SESSION["envios_pie_users"]) ? $_SESSION["user"]->id : $_SESSION["envios_pie_users"];
+		$_SESSION["subscritores_bars_users"] = empty($_SESSION["subscritores_bars_users"]) ? $_SESSION["user"]->id : $_SESSION["subscritores_bars_users"];
+		$_SESSION["totais_stats_users"] = empty($_SESSION["totais_stats_users"]) ? $_SESSION["user"]->id : $_SESSION["totais_stats_users"];
+
 		if(!empty($_POST["time_period"]["envios_pie"])) $_SESSION["envios_pie"] = $_POST["time_period"]["envios_pie"];
 		if(!empty($_POST["time_period"]["subscritores_bars"])) $_SESSION["subscritores_bars"] = $_POST["time_period"]["subscritores_bars"];
 		if(!empty($_POST["time_period"]["totais_stats"])) $_SESSION["totais_stats"] = $_POST["time_period"]["totais_stats"];
+
+		if(!empty($_POST["time_period"]["envios_pie_users"])) $_SESSION["envios_pie_users"] = $_POST["time_period"]["envios_pie_users"];
+		if(!empty($_POST["time_period"]["subscritores_bars_users"])) $_SESSION["subscritores_bars_users"] = $_POST["time_period"]["subscritores_bars_users"];
+		if(!empty($_POST["time_period"]["totais_stats_users"])) $_SESSION["totais_stats_users"] = $_POST["time_period"]["totais_stats_users"];
 
 		$this->time_interval_labels = array(
 			"trimester" => "trimestre",
@@ -247,7 +270,7 @@ class Dashboard {
 	}
 
 	function get_hard_bounces_count(){
-		$sql = "SELECT SUM(hard_bounces_count) AS total_bounces FROM subscribers";
+		$sql = "SELECT count(id) AS total_bounces FROM subscribers where hard_bounces_count>0";
 		$query = mysql_query($sql);
 		$result = mysql_fetch_object($query);
 
@@ -408,24 +431,37 @@ $dashboard = new Dashboard;
 						$percent_entregues = number_format(($dashboard->delivered_last_time_interval - $dashboard->opened_last_time_interval - $dashboard->bounced_last_time_interval) * 100 / $dashboard->delivered_last_time_interval, 2);
 						$percent_bounces = number_format(($dashboard->bounced_last_time_interval * 100) / $dashboard->delivered_last_time_interval, 2);
 					?>
-					<input type="hidden=" name="pie_graph_delivered_last_time_interval" value="<?php echo $percent_entregues ?>" />
-					<input type="hidden=" name="pie_graph_opened_last_time_interval" value="<?php echo $percent_abertas ?>" />
-					<input type="hidden=" name="pie_graph_bounced_last_time_interval" value="<?php echo $percent_bounces ?>" />
+					<input type="hidden" name="pie_graph_delivered_last_time_interval" value="<?php echo $percent_entregues ?>" />
+					<input type="hidden" name="pie_graph_opened_last_time_interval" value="<?php echo $percent_abertas ?>" />
+					<input type="hidden" name="pie_graph_bounced_last_time_interval" value="<?php echo $percent_bounces ?>" />
 				</div>
 			</div>
 			<div class="back">
 				<button class="flip-widget flip-widget-open"><i class="icon-white icon-check"></i></button>
 				<h2 class="widget-title"><i class="icon-white icon-envelope"></i> Envios último <?php echo $dashboard->time_interval_labels[$_SESSION["envios_pie"]] ?></h2>
-				<div class="back-settings">
-					<div class="back-settings">
+				<div class="back-settings" <?php echo ( $_SESSION["user"]->is_admin )?' style="padding-top:0;"':'' ?>>
+					<div class="back-settings" <?php echo ( $_SESSION["user"]->is_admin )?' style="padding-top:0;"':'' ?>>
 						<form name="envios_pie" action="?mod=dashboard" method="post">
 							<label>Seleccionar período</label>
-							<select class="auto-submit" name="time_period[envios_pie]">
+							<select name="time_period[envios_pie]">
 								<option>Escolha um período</option>
 								<option value="trimester">Último trimestre</option>
 								<option value="semester">Último semestre</option>						
 								<option value="year">Último ano</option>
 							</select>
+							<?php if ($_SESSION["user"]->is_admin): ?>
+								<label>Utilizador</label>
+								<select name="time_period[envios_pie_users]">
+								<?php foreach ($dashboard->all_users as $key => $value): ?>
+									<?php $ids[] = $value["id"]; ?>
+									<option <?php echo ( $_SESSION["envios_pie_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
+								<?php endforeach ?>
+									<option <?php echo ( $_SESSION["envios_pie_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
+
+								</select>
+								
+							<?php endif ?>
+							<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 						</form>
 					</div>
 					<!--label>Apresentar:</label>
@@ -459,15 +495,28 @@ $dashboard = new Dashboard;
 			<div class="back">
 				<button class="flip-widget flip-widget-open"><i class="icon-white icon-check"></i></button>
 				<h2 class="widget-title"><i class="icon-white icon-user"></i> Subscritores último <?php echo $dashboard->time_interval_labels[$_SESSION["subscritores_bars"]] ?></h2>
-				<div class="back-settings">
+				<div class="back-settings" <?php echo ( $_SESSION["user"]->is_admin )?' style="padding-top:0;"':'' ?>>
 					<form name="subscritores_bars" action="?mod=dashboard" method="post">
 						<label>Seleccionar período</label>
-						<select class="auto-submit" name="time_period[subscritores_bars]">
+						<select name="time_period[subscritores_bars]">
 							<option>Escolha um período</option>
 							<option value="trimester">Último trimestre</option>
 							<option value="semester">Último semestre</option>						
 							<option value="year">Último ano</option>
 						</select>
+						<?php if ($_SESSION["user"]->is_admin): ?>
+							<label>Utilizador</label>
+							<select name="time_period[subscritores_bars_users]">
+							<?php foreach ($dashboard->all_users as $key => $value): ?>
+								<?php $ids[] = $value["id"]; ?>
+								<option <?php echo ( $_SESSION["subscritores_bars_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
+							<?php endforeach ?>
+								<option <?php echo ( $_SESSION["subscritores_bars_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
+
+							</select>
+							
+						<?php endif ?>
+						<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 					</form>
 				</div>
 			</div>
@@ -530,15 +579,28 @@ $dashboard = new Dashboard;
 			<div class="back">
 				<button class="flip-widget flip-widget-open"><i class="icon-white icon-check"></i></button>
 				<h2 class="widget-title"><i class="icon-white icon-signal"></i> Totais último <?php echo $dashboard->time_interval_labels[$_SESSION["totais_stats"]] ?></h2>
-				<div class="back-settings">
+				<div class="back-settings" <?php echo ( $_SESSION["user"]->is_admin )?' style="padding-top:0;"':'' ?>>
 					<form name="totais_stats" action="?mod=dashboard" method="post">
 						<label>Seleccionar período</label>
-						<select class="auto-submit" name="time_period[totais_stats]">
+						<select name="time_period[totais_stats]">
 							<option>Escolha um período</option>
 							<option value="trimester">Último trimestre</option>
 							<option value="semester">Último semestre</option>						
 							<option value="year">Último ano</option>
 						</select>
+						<?php if ($_SESSION["user"]->is_admin): ?>
+							<label>Utilizador</label>
+							<select name="time_period[totais_stats_users]">
+							<?php foreach ($dashboard->all_users as $key => $value): ?>
+								<?php $ids[] = $value["id"]; ?>
+								<option <?php echo ( $_SESSION["totais_stats_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
+							<?php endforeach ?>
+								<option <?php echo ( $_SESSION["totais_stats_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
+
+							</select>
+							
+						<?php endif ?>
+						<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 					</form>
 				</div>
 			</div>

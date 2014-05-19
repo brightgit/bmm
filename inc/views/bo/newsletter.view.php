@@ -1053,7 +1053,7 @@ function show_statistics($id){
 	//Ir buscar os envios
 
 	if ( $_SESSION["user"]->is_admin ) {
-		$query = "select * from envios where mensagem_id = '".$mensagem->id."'";
+		$query = "select envios.*, users.first_name, users.last_name from envios left join users on users.id = envios.user_id where mensagem_id = '".$mensagem->id."'";
 	}else{
 		$query = "select * from envios where mensagem_id = '".$mensagem->id."' and user_id = '".$_SESSION["user"]->id."'";
 	}
@@ -1064,29 +1064,32 @@ function show_statistics($id){
 		<p>Esta mensagem não tem nenhum envio associado.</p>
 		<?php
 		return false;
-	}
-	$i = 1;
-	echo '<div class="control-group">
-		<label>Envio:</label>';
-	echo '<form method="get" action="index.php" class="form-horizontal">';
-	echo '<input type="hidden" name="mod" value="newsletter" />';
-	echo '<input type="hidden" name="view" value="statistics" />';
-	echo '<input type="hidden" name="id" value="'.$_GET["id"].'" />';
-	echo '<div class=""><select name="envio_id" class="inline">';
-	while( $row = mysql_fetch_array($res) ) {	//Iterar os envios
-		if ( $i == 1 ) {
-			$active_envio = $row;
-			$i++;
-		}
-		if ( isset( $_GET["envio_id"] ) && $row["id"] == $_GET["envio_id"] ) {
-			$active_envio = $row;
-			echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].'</option>';
-		}else{
-			echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
+	}elseif( mysql_num_rows( $res ) == 1 ) {
+		$active_envio = mysql_fetch_array($res);
+	}else{
+		$i = 1;
+		echo '<div class="control-group">
+			<label>Envio:</label>';
+		echo '<form method="get" action="index.php" class="form-horizontal">';
+		echo '<input type="hidden" name="mod" value="newsletter" />';
+		echo '<input type="hidden" name="view" value="statistics" />';
+		echo '<input type="hidden" name="id" value="'.$_GET["id"].'" />';
+		echo '<div class=""><select name="envio_id" class="inline" style="width:auto;">';
+		while( $row = mysql_fetch_array($res) ) {	//Iterar os envios
+			if ( $i == 1 ) {
+				$active_envio = $row;
+				$i++;
+			}
+			if ( isset( $_GET["envio_id"] ) && $row["id"] == $_GET["envio_id"] ) {
+				$active_envio = $row;
+				echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].( ($_SESSION["user"]->is_admin)? ' ('.$row["first_name"].' '.$row["last_name"].') ':'' ).'</option>';
+			}else{
+				echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
 
+			}
 		}
+		echo '</select> <input type="submit" class="btn btn-primary" value="Visualizar" name="submit" /> </div></div>';
 	}
-	echo '</select></div></div>';
 
 
 
