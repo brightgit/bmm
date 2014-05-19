@@ -319,23 +319,18 @@
 
 
 
-		//esta função deve devolver estatísticas pré processadas e o ínicio de ver o ficheiro
-		function load_statistics( $only_part = FALSE ){
-			$return = FALSE;
-			return $return;
-		}
-
 		//devolve todos os emails que abriram a newsletter
-		function get_opened_from_client($client_id, $message_id){
-			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("--1");
-			}
+		function get_opened_from_client($envio_id){
 
-			$bcsv->initiate( $client_id );
-			$bcsv->open_visits("read", array('mensagem_id' => $message_id, 'client' => $client_id ) );
+			$query = "select * from envios where id = '".$envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$envio = mysql_fetch_array($res);
+
+			$bcsv = new bcsv();
+
+
+			$bcsv->initiate( $envio["user_id"] );
+			$bcsv->open_visits("read", $envio["id"] );
 			$lines = $bcsv->lines();
 			//$lines = $bcsv->remove_quotes( $lines );
 			foreach ($lines as $key => $value) {
@@ -357,16 +352,16 @@
 		}
 
 		//devolve todos os emails que abriram a newsletter
-		function get_clicks_from_client($client_id, $message_id){
+		function get_clicks_from_client($envio_id){
+			$query = "select * from envios where id = '".$envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$envio = mysql_fetch_array($res);
 
 			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("Aqui deve devolver coisas que não está a devolver");
-			}
-			$bcsv->initiate( $client_id );
-			$bcsv->open_clicks("read", array('mensagem_id' => $message_id, 'client' => $client_id ) );
+
+
+			$bcsv->initiate( $envio["user_id"] );
+			$bcsv->open_clicks("read", $envio["id"] );
 			$lines = $bcsv->lines();
 
 			if($lines){
@@ -394,15 +389,14 @@
 			
 		}
 		
-		function get_num_send($client_id, $newsletter_id){
+		function get_num_send($envio_id){
+			$query = "select * from envios where id='".$envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$envio = mysql_fetch_array($res);
+
 			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("Aqui deve devolver coisas que não está a devolver");
-			}
-			$bcsv->initiate( $client_id );
-			$bcsv->open_enviadas("read", array('mensagem_id' => $newsletter_id, 'client' => $client_id ) );
+			$bcsv->initiate( $envio["user_id"] );
+			$bcsv->open_enviadas("read", $envio["id"] );
 
 			$lines = $bcsv->count_lines();
 			$bcsv->close();
@@ -411,16 +405,15 @@
 		}
 
 	
-		function get_statistics_by_day( $client_id, $newsletter_id ){
+		function get_statistics_by_day( $envio_id ){
+
+			$query = "SELECT * FROM envios where id = '".$envio_id."'";
+			$res = mysql_query($query);
+			$envio = mysql_fetch_array($res);
 
 			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("Aqui deve devolver coisas que não está a devolver");
-			}
-			$bcsv->initiate( $client_id );
-			$bcsv->open_visits("read", array('mensagem_id' => $newsletter_id, 'client' => $client_id ) );
+			$bcsv->initiate( $envio["user_id"] );
+			$bcsv->open_visits("read", $envio["id"] );
 			$lines = $bcsv->lines();
 
 
@@ -455,16 +448,17 @@
 		}
 		
 		//Confirmar que isto é mesmo get_opened_from_client.
-		function get_num_opened_from_newsletter($client_id, $newsletter_id){
-			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("Aqui deve devolver coisas que não está a devolver");
-			}
-			$bcsv->initiate( $client_id );
+		function get_num_opened_from_newsletter($envio_id){
+			$query = "select * from envios where id = '".$envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
 
-			$bcsv->open_visits("read", array('mensagem_id' => $newsletter_id, 'client' => $client_id ) );
+			$envio = mysql_fetch_array($res);
+
+
+			$bcsv = new bcsv();
+			$bcsv->initiate( $envio["user_id"] );
+
+			$bcsv->open_visits("read", $envio["id"] );
 			$lines = $bcsv->count_lines();
 
 
@@ -475,15 +469,14 @@
 			return $lines;
 		}
 
-		function get_num_distinct_opened_from_newsletter($client_id, $newsletter_id){
+		function get_num_distinct_opened_from_newsletter($envio_id){
+			$query = "select * from envios where id = '".$envio_id."'";
+			$res = mysql_query($query) or die( mysql_error() );
+			$envio = mysql_fetch_array($res);
+
 			$bcsv = new bcsv();
-			$pre = $this->load_statistics( "visits" );	//Carregar estatíscas para visitas
-			if( $pre ) {
-				//TODO Here
-				die("Aqui deve devolver coisas que não está a devolver");
-			}
-			$bcsv->initiate( $client_id );
-			$bcsv->open_visits( "read", array('mensagem_id' => $newsletter_id, 'client' => $client_id ) );
+			$bcsv->initiate( $envio["user_id"] );
+			$bcsv->open_visits( "read", $envio["id"] );
 			$lines = $bcsv->lines();
 
 			foreach ($lines as $i => $line) {
@@ -503,23 +496,25 @@
 		function load_clicks_into_table($clicks , $columns){
 
 			//connect
-			$pdo = self::db_connect();
 
 			$sql_columns = implode(" VARCHAR(255) NULL, ", $columns);
 			$sql_columns .= " VARCHAR(255) NULL";
 
 			$sql = "CREATE TABLE IF NOT EXISTS `temp_clicks` ( ".$sql_columns." ) COLLATE='utf8_general_ci' ENGINE=MyISAM;";
 			
-			//criar tabelas dinamicamente, todas em varchar 255
-			$query = $pdo->query($sql);
+			$query = mysql_query($sql);
+			while ( $row = mysql_fetch_array($query) ) {
+				$clicks[] = $row;
+			}
 
+			
 			//preencher a table com os dados de clicks, tem que estar a condição true, caso não se apague a tabela
 			if($query){
 				if($clicks){
 					foreach ($clicks as $click) {
 						//inserir as colunas dinamicamente
 						$insert_sql = "INSERT INTO `temp_clicks` (".implode(",", $columns).") VALUES ('".$click->email."', '".$click->url."', '".$click->date."', '".$click->referer."', '".$click->ip."')";
-						$insert = $pdo->query($insert_sql);
+						$insert = mysql_query($insert_sql);
 					}
 				}
 			}
@@ -528,8 +523,7 @@
 		//limpa a tabela temporária de clicks
 		function clear_clicks_table(){
 			//connect
-			$pdo = self::db_connect();
-			$query = $pdo->query("truncate temp_clicks");
+			$query = mysql_query("truncate temp_clicks");
 
 			return $query;
 		}
@@ -540,9 +534,14 @@
 			$sql = "select url, count(url) as total_clicks from temp_clicks group by url order by total_clicks DESC LIMIT 100";
 
 			//connect
-			$pdo = self::db_connect();
-			$query = $pdo->query($sql);
-			$result = $query->fetchAll(PDO::FETCH_OBJ);
+			//$pdo = self::db_connect();
+			//$query = $pdo->query($sql);
+			//$result = $query->fetchAll(PDO::FETCH_OBJ);
+
+			$res = mysql_query($sql);
+			while ( $row = mysql_fetch_array($res) ) {
+				$result[] = $row;
+			}
 
 			return $result;
 		}
@@ -552,9 +551,14 @@
 			$sql = "select email, count(email) as total_clicks from temp_clicks group by email order by total_clicks DESC LIMIT 100";
 
 			//connect
-			$pdo = self::db_connect();
-			$query = $pdo->query($sql);
-			$result = $query->fetchAll(PDO::FETCH_OBJ);
+			//$pdo = self::db_connect();
+			//$query = $pdo->query($sql);
+			//$result = $query->fetchAll(PDO::FETCH_OBJ);
+
+			$res = mysql_query($sql);
+			while ( $row = mysql_fetch_array($res) ) {
+				$result[] = $row;
+			}
 
 			return $result;
 		}
@@ -562,7 +566,8 @@
 		/* estatisticas de cliques */
 		
 		function get_distinct_opened($client_id){
-			$pdo = self::db_connect();
+			die("Está a entrar aqui");
+			//$pdo = self::db_connect();
 			$sql = "SELECT * FROM `newsletters` where `client_id` = ".$client_id;
 			//$sql = "SELECT count(distinct(email)) as num FROM visits WHERE `client_id` = ".$client_id;
 			$query = $pdo->query($sql);

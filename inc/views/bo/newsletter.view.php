@@ -1047,20 +1047,61 @@ function show_statistics($id){
 		<?php
 		return false;
 	}
+	echo '<h2>Estatisticas para a mensagem: '.$mensagem->assunto.'</h2>';
+	
 
-	$client_id = $bmm->get_client_id();
-	$num_aberturas = $bmm->get_num_opened_from_newsletter($client_id, $id);
+	//Ir buscar os envios
 
+	if ( $_SESSION["user"]->is_admin ) {
+		$query = "select * from envios where mensagem_id = '".$mensagem->id."'";
+	}else{
+		$query = "select * from envios where mensagem_id = '".$mensagem->id."' and user_id = '".$_SESSION["user"]->id."'";
+	}
+	$res = mysql_query($query) or die( mysql_error() );
+	if ( mysql_num_rows( $res ) == 0  ) {
+		?>
+		<h1>Erro:</h1>
+		<p>Esta mensagem não tem nenhum envio associado.</p>
+		<?php
+		return false;
+	}
+	$i = 1;
+	echo '<div class="control-group">
+		<label>Envio:</label>';
+	echo '<form method="get" action="index.php" class="form-horizontal">';
+	echo '<input type="hidden" name="mod" value="newsletter" />';
+	echo '<input type="hidden" name="view" value="statistics" />';
+	echo '<input type="hidden" name="id" value="'.$_GET["id"].'" />';
+	echo '<div class=""><select name="envio_id" class="inline">';
+	while( $row = mysql_fetch_array($res) ) {	//Iterar os envios
+		if ( $i == 1 ) {
+			$active_envio = $row;
+			$i++;
+		}
+		if ( isset( $_GET["envio_id"] ) && $row["id"] == $_GET["envio_id"] ) {
+			$active_envio = $row;
+			echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].'</option>';
+		}else{
+			echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
+
+		}
+	}
+	echo '</select></div></div>';
+
+
+
+	//$client_id = $bmm->get_client_id();
+	$num_aberturas = $bmm->get_num_opened_from_newsletter($active_envio["id"]);
+
+	//Isto tem que mudar
 	if( $mensagem->estado_code == 0 || $mensagem->estado == "Não utilizada" || $num_aberturas === 0 ){
 		?>
-		<h1>Estat&iacute;sticas para a mensagem: <b><?php echo $mensagem->assunto; ?></b></h1>
 		<p>Ainda não existem dados suficientes para aceder a este módulo.</p>
 		<?php
 		return false;
 	}
 	?>
 	
-	<h2>Estatisticas para a mensagem: <?php echo $mensagem->assunto; ?></h2>
 
 	<!-- Navegação lateral, Uma para cada estatística -->
 	<ul class="nav nav-tabs" id="tabThis">
@@ -1103,19 +1144,13 @@ function show_statistics($id){
 					$res = mysql_query( $query ) or die( mysql_error() );
 					$envios_falhados = mysql_num_rows($res);
 
-					$client_id = $bmm->get_client_id();
-					$evios_sucesso = $bmm->get_num_send($client_id, $id);
+					$evios_sucesso = $bmm->get_num_send($active_envio["id"]);
 					$envios = $envios_espera + $envios_falhados + $evios_sucesso;
 
 					?>
 
 					<tr>
 						<th>Número de envios </th>
-						<?php 
-						$query = "SELECT * FROM `mensagens_enviadas` WHERE `mensagem_id`= '".$id."'"; 
-						$res = mysql_query( $query ) or die( mysql_error() );
-						$num_envios = mysql_num_rows($res);						
-						?>
 						<td><?php echo $envios ?></td>
 					</tr>
 					<tr>
@@ -1146,9 +1181,8 @@ function show_statistics($id){
 						<th>Total de aberturas</th>
 						<?php
 
-						$client_id = $bmm->get_client_id();
-						$num_aberturas = $bmm->get_num_opened_from_newsletter($client_id, $id);
-						$num_pessoas_abriram = $bmm->get_num_distinct_opened_from_newsletter($client_id, $id);
+						$num_aberturas = $bmm->get_num_opened_from_newsletter($active_envio["id"]);
+						$num_pessoas_abriram = $bmm->get_num_distinct_opened_from_newsletter($active_envio["id"]);
 
 						?>
 						<td>
@@ -1169,7 +1203,7 @@ function show_statistics($id){
 		<?php
 		//info dos cliques
 		$bmm = new BRIGHT_mail_feedback();
-		$clicks = $bmm->get_clicks_from_client($client_id, $id);
+		$clicks = $bmm->get_clicks_from_client($active_envio["id"]);
 
 		//definir as colunas
 		$columns = array("email", "url", "date", "referer", "ip");
@@ -1218,7 +1252,7 @@ function show_statistics($id){
 	<div class="tab-pane" id="profile">
 		<?php
 		$bmm = new BRIGHT_mail_feedback();
-		$list = $bmm->get_opened_from_client($client_id, $id);
+		$list = $bmm->get_opened_from_client($active_envio["id"]);
 
 		?>
 
@@ -1303,7 +1337,7 @@ function show_statistics($id){
 				#Pre-Processing
 	unset($list);
 	$bmm = new BRIGHT_mail_feedback();
-	$list = $bmm->get_statistics_by_day($client_id, $id);
+	$list = $bmm->get_statistics_by_day($active_envio["id"]);
 
 	?>
 

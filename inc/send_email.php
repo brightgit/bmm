@@ -68,7 +68,7 @@ $query  = "select mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		}
 
 		//Mandrill
-		if (false) {
+		if (true) {
 			require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
