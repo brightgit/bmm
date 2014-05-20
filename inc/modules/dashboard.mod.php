@@ -44,7 +44,7 @@ class Dashboard {
 
 	function get_all_users() {
 		$query = "select * from users where is_active = 1";
-		$res = mysql_query($query);
+		$res = mysql_query($query) or die( mysql_error().$sql );;
 		while ( $row = mysql_fetch_array($res) ) {
 			$aux["name"] = $row["first_name"] . " " . $row["last_name"];
 			$aux["id"] = $row["id"];
@@ -110,22 +110,20 @@ class Dashboard {
 		//query
 		$sql = "SELECT COUNT(subscribers.id) AS total 
 			FROM subscribers 
-			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
-			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
-			left join user_permissions on user_permissions.group_id = user_groups.id
-			left join users on user_permissions.user_id = users.id
-			WHERE MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["totais_stats_users"].")
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+			WHERE MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_permissions.user_id IN(".$_SESSION["totais_stats_users"].")
 			UNION 
 			SELECT COUNT(subscribers.id) AS total 
-				FROM subscribers 
-				left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
-				left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
-				left join user_permissions on user_permissions.group_id = user_groups.id
-				left join users on user_permissions.user_id = users.id
-				WHERE MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(date_created) = ".$prev_year . " and users.id in( ". $_SESSION["totais_stats_users"] . " )";
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				WHERE MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
+					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_permissions.user_id in( ". $_SESSION["totais_stats_users"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
-		$query = mysql_query($sql) or die( mysql_error() );
+		$query = mysql_query($sql) or die( mysql_error().$sql );
 
 		while ($row = mysql_fetch_object($query)) {
 			$output[] = $row;
@@ -163,22 +161,21 @@ class Dashboard {
 
 
 		//query
-		$sql = "SELECT COUNT(subscribers.id) AS total 
+		$sql = "
+		SELECT COUNT(subscribers.id) AS total 
 			FROM subscribers 
-			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
-			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
-			left join user_permissions on user_permissions.group_id = user_groups.id
-			left join users on user_permissions.user_id = users.id
-			WHERE requested_exclusion > 0 AND MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["totais_stats_users"].")
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+			WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_permissions.user_id IN(".$_SESSION["totais_stats_users"].")
 			UNION 
 			SELECT COUNT(subscribers.id) AS total 
-				FROM subscribers 
-				left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
-				left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
-				left join user_permissions on user_permissions.group_id = user_groups.id
-				left join users on user_permissions.user_id = users.id
-				WHERE requested_exclusion > 0 AND MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(date_created) = ".$prev_year . " and users.id in( ". $_SESSION["totais_stats_users"] . " )";
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
+					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_permissions.user_id in( ". $_SESSION["totais_stats_users"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
 
 		/*
@@ -192,7 +189,7 @@ class Dashboard {
 				WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$prev_month_start." AND ".$prev_month_end . " AND year(date_updated) = " . $prev_year;
 		echo "<hr />" . $sql . "<hr />";
 		*/
-		$query = mysql_query($sql);
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		while ($row = mysql_fetch_object($query)) {
 			$output[] = $row;
@@ -237,7 +234,7 @@ class Dashboard {
 				FROM envios WHERE month(date_sent) 
 				BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year . " and user_id in (".$_SESSION["totais_stats_users"].")";
 		//echo "<hr />" . $sql . "<hr />";
-		$query = mysql_query($sql);
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		while ($row = mysql_fetch_object($query)) {
 			$output[] = $row;
@@ -261,7 +258,7 @@ class Dashboard {
 
 
 		$sql = "SELECT SUM(hard_bounces_count) AS total, MONTH(last_bounce_added) AS month_bounced, YEAR(last_bounce_added) FROM subscribers WHERE hard_bounces_count > 0 GROUP BY month_bounced HAVING month_bounced BETWEEN ".$month_start." AND ".$month_end;
-		$query = mysql_query($sql);
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
 		return $result->total;
@@ -277,8 +274,8 @@ class Dashboard {
 		$month_end = $time_interval[$time_interval_now]["to"];
 
 
-		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end;
-		$query = mysql_query($sql);
+		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . " and user_id in (".$_SESSION["envios_pie_users"].")";
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
 		return $result->total;
@@ -293,16 +290,16 @@ class Dashboard {
 		$month_start = $time_interval[$time_interval_now]["from"];
 		$month_end = $time_interval[$time_interval_now]["to"];
 
-		$sql = "SELECT SUM(mensagens_enviadas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end;
-		$query = mysql_query($sql);
+		$sql = "SELECT SUM(mensagens_enviadas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . "";
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
 		return $result->total;
 	}
 
 	function get_total_sent(){
-		$sql = "SELECT mensagens_enviadas, mensagens_abertas FROM stats";
-		$query = mysql_query($sql);
+		$sql = "SELECT mensagens_enviadas, mensagens_abertas FROM stats where user_id in ( ".$_SESSION["envios_pie_users"]." )";
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
 		$this->total_sent = $result->mensagens_enviadas;
@@ -311,8 +308,13 @@ class Dashboard {
 	}
 
 	function get_exclusion_requests_per_month(){
-		$sql = "SELECT COUNT(id) / 12 AS average, MONTH(date_updated), YEAR(date_updated) FROM subscribers WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y");
-		$query = mysql_query($sql);
+		$sql = "SELECT COUNT(subscribers.id) / 12 AS average, MONTH(subscribers.date_updated), YEAR(subscribers.date_updated) 
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y") . " and user_permissions.user_id in ( ".$_SESSION["envios_pie_users"]." )";
+		$query = mysql_query($sql) or die( mysql_error().$sql );
 
 		$result = mysql_fetch_object($query);
 
@@ -320,8 +322,15 @@ class Dashboard {
 	}
 
 	function get_hard_bounces_count(){
-		$sql = "SELECT count(id) AS total_bounces FROM subscribers where hard_bounces_count>0";
-		$query = mysql_query($sql);
+		$sql = "SELECT count(subscribers.id) AS total_bounces 
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				where hard_bounces_count>0 and user_permissions.user_id in (".$_SESSION["envios_pie_users"].")";
+		//echo $sql;
+
+		$query = mysql_query($sql) or die( mysql_error().$sql );
 		$result = mysql_fetch_object($query);
 
 		return $result->total_bounces;
@@ -329,8 +338,13 @@ class Dashboard {
 
 	//baseado no numero de subscribers por ano
 	function get_subscribers_per_month(){
-		$sql = "SELECT COUNT(id) / 12 AS average, YEAR(`date_created`) AS year_created FROM subscribers WHERE YEAR(date_created) = ".date("Y")." GROUP BY year_created";
-		$query = mysql_query($sql);
+		$sql = "SELECT COUNT(subscribers.id) / 12 AS average, YEAR(subscribers.`date_created`) AS year_created 
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+				WHERE YEAR(subscribers.date_created) = ".date("Y")." GROUP BY year_created and user_permissions.user_id in ( ".$_SESSION["envios_pie_users"]." )";
+		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
 
@@ -398,21 +412,20 @@ class Dashboard {
 		
 		//query
 		$sql = "
-		SELECT COUNT(subscribers.id) AS total, MONTH(date_created) AS month_created
+		SELECT *, COUNT(subscribers.id) AS total, MONTH(subscribers.date_created) AS month_created 
 			FROM subscribers 
-			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
-			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
-			left join user_permissions on user_permissions.group_id = user_groups.id
-			left join users on user_permissions.user_id = users.id
-			WHERE date_created BETWEEN '".$date_start."' AND '".$date_end."' and users.id IN(".$_SESSION["subscritores_bars_users"].") GROUP BY month_created";
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
+			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
+			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+			WHERE subscribers.date_created BETWEEN '".$date_start."' AND '".$date_end."' and user_permissions.user_id IN(".$_SESSION["subscritores_bars_users"].") GROUP BY month_created";
 
 
 		/*
 		//Old Query, before grouped by user
 		$sql = "SELECT COUNT(id) AS total, MONTH(date_created) AS month_created FROM subscribers WHERE date_created BETWEEN '".$date_start."' AND '".$date_end."' GROUP BY month_created";
 		*/
-		echo " <hr /> " . $sql . " <hr /> ";
-		$query = mysql_query($sql);
+		//echo " <hr /> " . $sql . " <hr /> ";
+		$query = mysql_query($sql) or die( mysql_error().$sql );
 
 		while ($row = mysql_fetch_object($query)) {
 			$this->subscribers_last_time_interval += $row->total;
@@ -605,7 +618,7 @@ $dashboard = new Dashboard;
 				<ul class="general-data-list">
 					<!-- subscribers -->
 					<li>
-						<strong><?php echo $dashboard->total_subscribers_last_time_interval[0]->total . ' - '. $dashboard->total_subscribers_last_time_interval[1]->total ?></strong> Subscritores 
+						<strong><?php echo $dashboard->total_subscribers_last_time_interval[0]->total; ?></strong> Subscritores 
 						<?php if(($dashboard->total_subscribers_last_time_interval[1]->total != 0) && $dashboard->total_subscribers_last_time_interval[0]->total > $dashboard->total_subscribers_last_time_interval[1]->total): ?>
 						<span class="compare compare-positive"><?php echo (($dashboard->total_subscribers_last_time_interval[0]->total * 100) / $dashboard->total_subscribers_last_time_interval[1]->total) -100 ?>% <span class="label label-success"><i class="icon-white icon-chevron-up"></span></i></span>
 						<?php elseif(($dashboard->total_subscribers_last_time_interval[1]->total != 0) && $dashboard->total_subscribers_last_time_interval[0]->total < $dashboard->total_subscribers_last_time_interval[1]->total): ?>

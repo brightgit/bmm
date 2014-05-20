@@ -2,10 +2,14 @@
 	switch($_SERVER['HTTP_HOST']){
 		//development
 		case "localhost":
-			$host = 'pme24.net';
-			$user = 'pmenet_bmmv3';
-			$password = 'Hugo#$12';
-			$database = 'pmenet_bmm_v3';
+			//$host = 'pme24.net';
+			//$user = 'pmenet_bmmv3';
+			//$password = 'Hugo#$12';
+			//$database = 'pmenet_bmm_v3';
+			$host = 'localhost';
+			$user = 'root';
+			$password = '';
+			$database = 'bmm';
 		break;
 		//production
 		default:

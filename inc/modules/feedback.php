@@ -141,7 +141,7 @@
 
 
 			$visit[] = $row["sender_host"];	//host
-			$visit[] = $row["id"];	//Id do envio
+			$visit[] = $row["id"];	//Id do user, acho que não está certo
 			$visit[] = $this->email;	//Email
 			$visit[] = $this->user_agent;	//user_agent
 			$visit[] = $this->ip;	//ip

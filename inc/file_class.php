@@ -203,6 +203,17 @@ class bcsv extends BRIGHT_mail_feedback
 
 	public function add_visit( $visit_obs ){		//Tem que ser array
 
+		//$visit[] = $row["sender_host"];	//host
+		//$visit[] = $row["id"];	//Id do user, acho que não está certo
+		//$visit[] = $this->email;	//Email
+		//$visit[] = $this->user_agent;	//user_agent
+		//$visit[] = $this->ip;	//ip
+		//$visit[] = $this->referer;	//referer
+		//$visit[] = date("Y-m-d H:m:s");	//data
+
+
+
+
 		$visit_obs = $this->escape_csv( $visit_obs );
 		$email = $visit_obs[2];
 		$file = $this->folder_prefix.$this->folder.'/visits/'.$this->filename;
@@ -217,7 +228,7 @@ class bcsv extends BRIGHT_mail_feedback
 			$month = date("m");
 			$year = date("Y");
 			//get month and year id
-			$sql = "SELECT * FROM stats WHERE month = " . $month . " AND year = " . $year;
+			$sql = "SELECT * FROM stats WHERE month = " . $month . " AND year = " . $year . " and user_id = '". $visit_obs[1] ."'";
 			$query = mysql_query($sql);
 			$result = mysql_fetch_object($query);
 
@@ -228,7 +239,7 @@ class bcsv extends BRIGHT_mail_feedback
 			}
 			//inserir novo mês
 			else{
-				$sql = "REPLACE stats SET mensagens_abertas = mensagens_abertas + 1, month = ". $month . ", year = " . $year;
+				$sql = "REPLACE stats SET mensagens_abertas = mensagens_abertas + 1, month = ". $month . ", year = " . $year . ", user_id = '".$visit_obs[1]."'";
 				$query = mysql_query($sql);
 			}
 	

@@ -86,7 +86,7 @@ class ViewMass_email {
 				$month = date("m");
 				$year = date("Y");
 				//get month and year id
-				$sql = "SELECT * FROM stats WHERE month = " . $month . " AND year = " . $year;
+				$sql = "SELECT * FROM stats WHERE month = " . $month . " AND year = " . $year . " and user_id  = '".$_SESSION["user"]->id."'";
 				$query = mysql_query($sql);
 				$result = mysql_fetch_object($query);
 
@@ -97,13 +97,15 @@ class ViewMass_email {
 				}
 				//inserir novo mês
 				else{
-					$sql = "REPLACE stats SET mensagens_enviadas = mensagens_abertas + 1, month = ". $month . ", year = " . $year;
+					$sql = "REPLACE stats SET mensagens_enviadas = mensagens_enviadas + 1, month = ". $month . ", year = " . $year . ", user_id  = '".$_SESSION["user"]->id. "'";
 					$query = mysql_query($sql);
 				}
 
+				/* Removido na versão 3.0.0 pois é substituido pela tabela envios.
 				//inserir nas estatisticas de newsletter o envio
 				$sql = "INSERT INTO stats_newsletters (newsletter_id, date_sent) VALUES(".$mensagem->id.", CURRENT_TIMESTAMP)";
 				$query = mysql_query($sql);
+				*/
 
 				
 				//definir a mensagem como enviada - isto na realidade só acontece depois de ser feito o CRON...

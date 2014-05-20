@@ -53,17 +53,6 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		$to = array($mensagem->subscriber_email => $mensagem->subscriber_email);
 		$html_body = BRIGHT_mail_feedback::inject($mensagem); //passa a receber apenas um parâmetro (informação da newsletter + informação do subscriber num object)
 
-		//Meter nos stats
-		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() )";
-		$res_stats = mysql_query( $query ) or log_error( mysql_error().$query );
-		if ( $row = mysql_fetch_array($res_stats) ) {	//temos vamos incrementar
-			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row["id"]."'";
-			mysql_query($query) or log_error( mysql_error().$query );
-		}else{
-			$query = "insert into stats values (NULL, 1, 0, month( now() ), year( now() ) )";
-			mysql_query($query) or log_error( mysql_error().$query );
-		}
-
 		//Mandrill
 		if (true) {
 			require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
@@ -136,6 +125,7 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 
 
 		}
+
 		//$sent_mandrill = true;
 		require_once("file_class.php");
 		$bcsv = new bcsv();
@@ -149,6 +139,21 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		$res2 = mysql_query($query) or die( mysql_error() );
 		$row = mysql_fetch_object( $res2 );
 
+		/* Bloco extra aqui no meio*/
+		//Meter nos stats
+		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() ) and user_id = '".$row->user_id."'";
+		$res_stats = mysql_query( $query ) or log_error( mysql_error().$query );
+		if ( $row = mysql_fetch_array($res_stats) ) {	//temos vamos incrementar
+			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row["id"]."'";
+			mysql_query($query) or log_error( mysql_error().$query );
+		}else{
+			$query = "insert into stats values (NULL, 1, 0, month( now() ), year( now() ), '".$row->user_id."' )";
+			mysql_query($query) or log_error( mysql_error().$query );
+		}
+		/* END Bloco extra aqui no meio*/
+
+
+		
 		//echo $query;
 		//$client_id = BRIGHT_mail_feedback::get_client_id();
 		$bcsv->initiate( $row->user_id );
