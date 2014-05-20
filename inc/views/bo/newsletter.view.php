@@ -1109,8 +1109,6 @@ function show_statistics($id){
 				echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].( ($_SESSION["user"]->is_admin)? ' ('.$row["first_name"].' '.$row["last_name"].') ':'' ).'</option>';
 			}else{
 				echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
->>>>>>> FETCH_HEAD
-
 			}
 		}
 		echo '</select> <input type="submit" class="btn btn-primary" value="Visualizar" name="submit" /> </div></div>';
