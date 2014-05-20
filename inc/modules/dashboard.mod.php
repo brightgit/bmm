@@ -114,7 +114,7 @@ class Dashboard {
 			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
 			left join user_permissions on user_permissions.group_id = user_groups.id
 			left join users on user_permissions.user_id = users.id
-			WHERE MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["subscritores_bars_users"].")
+			WHERE MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["totais_stats_users"].")
 			UNION 
 			SELECT COUNT(subscribers.id) AS total 
 				FROM subscribers 
@@ -123,7 +123,7 @@ class Dashboard {
 				left join user_permissions on user_permissions.group_id = user_groups.id
 				left join users on user_permissions.user_id = users.id
 				WHERE MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(date_created) = ".$prev_year;
+					AND YEAR(date_created) = ".$prev_year . " and users.id in( ". $_SESSION["totais_stats_users"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql) or die( mysql_error() );
 
@@ -160,10 +160,38 @@ class Dashboard {
 			$prev_year = date("Y"); //current year
 		}
 
-		//query
 
-		$sql = "SELECT COUNT(id) AS total FROM subscribers WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$month_start." AND ".$month_end . " AND year(date_updated) = " . date("Y") . " UNION SELECT COUNT(id) AS total FROM subscribers WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$prev_month_start." AND ".$prev_month_end . " AND year(date_updated) = " . $prev_year;
+
+		//query
+		$sql = "SELECT COUNT(subscribers.id) AS total 
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
+			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
+			left join user_permissions on user_permissions.group_id = user_groups.id
+			left join users on user_permissions.user_id = users.id
+			WHERE requested_exclusion > 0 AND MONTH(date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(date_created) = ".date("Y") . " and users.id IN(".$_SESSION["totais_stats_users"].")
+			UNION 
+			SELECT COUNT(subscribers.id) AS total 
+				FROM subscribers 
+				left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
+				left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
+				left join user_permissions on user_permissions.group_id = user_groups.id
+				left join users on user_permissions.user_id = users.id
+				WHERE requested_exclusion > 0 AND MONTH(date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
+					AND YEAR(date_created) = ".$prev_year . " and users.id in( ". $_SESSION["totais_stats_users"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
+
+		/*
+		//Previous query, before users
+		$sql = "SELECT COUNT(id) AS total 
+			FROM subscribers 
+			WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$month_start." AND ".$month_end . " AND year(date_updated) = " . date("Y") . " 
+				UNION 
+			SELECT COUNT(id) AS total 
+				FROM subscribers 
+				WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$prev_month_start." AND ".$prev_month_end . " AND year(date_updated) = " . $prev_year;
+		echo "<hr />" . $sql . "<hr />";
+		*/
 		$query = mysql_query($sql);
 
 		while ($row = mysql_fetch_object($query)) {
@@ -200,7 +228,14 @@ class Dashboard {
 		}
 
 		//query
-		$sql = "SELECT COUNT(newsletter_id) AS total FROM stats_newsletters WHERE month(date_sent) BETWEEN " . $month_start . " AND " . $month_end . " AND year(date_sent) = " . date("Y") . " UNION SELECT COUNT(newsletter_id) AS total FROM stats_newsletters WHERE month(date_sent) BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year;
+		$sql = "SELECT COUNT(envios.id) AS total 
+			FROM envios 
+			WHERE month(date_sent) 
+			BETWEEN " . $month_start . " AND " . $month_end . " AND year(date_sent) = " . date("Y") . " and user_id in (".$_SESSION["totais_stats_users"].")
+				UNION 
+			SELECT COUNT(envios.id) AS total 
+				FROM envios WHERE month(date_sent) 
+				BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year . " and user_id in (".$_SESSION["totais_stats_users"].")";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql);
 
@@ -359,9 +394,24 @@ class Dashboard {
 		$month_end = $time_interval[$time_interval_now]["to"];
 
 		$date_start = date("Y-".$month_start."-01");
-		$date_end = date("Y-".$month_end."-01");
+		$date_end = date("Y-".$month_end."-31");
 		
-		$sql = "SELECT COUNT(id) AS total, MONTH(date_created) AS month_created FROM subscribers WHERE date_created > '".$date_start."' AND '".$date_end."' GROUP BY month_created";
+		//query
+		$sql = "
+		SELECT COUNT(subscribers.id) AS total, MONTH(date_created) AS month_created
+			FROM subscribers 
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id
+			left join user_groups on user_groups.id = subscriber_by_cat.id_categoria
+			left join user_permissions on user_permissions.group_id = user_groups.id
+			left join users on user_permissions.user_id = users.id
+			WHERE date_created BETWEEN '".$date_start."' AND '".$date_end."' and users.id IN(".$_SESSION["subscritores_bars_users"].") GROUP BY month_created";
+
+
+		/*
+		//Old Query, before grouped by user
+		$sql = "SELECT COUNT(id) AS total, MONTH(date_created) AS month_created FROM subscribers WHERE date_created BETWEEN '".$date_start."' AND '".$date_end."' GROUP BY month_created";
+		*/
+		echo " <hr /> " . $sql . " <hr /> ";
 		$query = mysql_query($sql);
 
 		while ($row = mysql_fetch_object($query)) {
@@ -509,7 +559,7 @@ $dashboard = new Dashboard;
 			</div>
 			<div class="back">
 				<button class="flip-widget flip-widget-open"><i class="icon-white icon-check"></i></button>
-				<h2 class="widget-title"><i class="icon-white icon-user"></i> Subscritores último <?php echo $dashboard->time_interval_labels[$_SESSION["subscritores_bars"]] ?></h2>
+				<h2 class="widget-title"><i class="icon-white icon-user"></i> Subscritores último <?php echo $dashboard->time_interval_labels[$_SESSION["subscritores_bars"]]; ?></h2>
 				<div class="back-settings" <?php echo ( $_SESSION["user"]->is_admin )?' style="padding-top:0;"':'' ?>>
 					<form name="subscritores_bars" action="?mod=dashboard" method="post">
 						<label>Seleccionar período</label>
@@ -555,7 +605,7 @@ $dashboard = new Dashboard;
 				<ul class="general-data-list">
 					<!-- subscribers -->
 					<li>
-						<strong><?php echo $dashboard->total_subscribers_last_time_interval[0]->total ?></strong> Subscritores 
+						<strong><?php echo $dashboard->total_subscribers_last_time_interval[0]->total . ' - '. $dashboard->total_subscribers_last_time_interval[1]->total ?></strong> Subscritores 
 						<?php if(($dashboard->total_subscribers_last_time_interval[1]->total != 0) && $dashboard->total_subscribers_last_time_interval[0]->total > $dashboard->total_subscribers_last_time_interval[1]->total): ?>
 						<span class="compare compare-positive"><?php echo (($dashboard->total_subscribers_last_time_interval[0]->total * 100) / $dashboard->total_subscribers_last_time_interval[1]->total) -100 ?>% <span class="label label-success"><i class="icon-white icon-chevron-up"></span></i></span>
 						<?php elseif(($dashboard->total_subscribers_last_time_interval[1]->total != 0) && $dashboard->total_subscribers_last_time_interval[0]->total < $dashboard->total_subscribers_last_time_interval[1]->total): ?>
@@ -572,7 +622,7 @@ $dashboard = new Dashboard;
 						<?php elseif(($dashboard->total_newsletter_sends_time_interval[1]->total != 0) && $dashboard->total_newsletter_sends_time_interval[0]->total < $dashboard->total_newsletter_sends_time_interval[1]->total): ?>
 						<span class="compare compare-negative"><?php echo number_format(100 - (($dashboard->total_newsletter_sends_time_interval[0]->total * 100) / $dashboard->total_newsletter_sends_time_interval[1]->total), 2) ?>% <span class="label label-important"><i class="icon-white icon-chevron-down"></span></i></span>
 						<?php else: ?>
-						<span class="compare compare-negative">0% <span class="label label-warning"><i class="icon-white icon-minus"></span></i></span>
+						<span class="compare compare-negative"><?php echo $dashboard->total_newsletter_sends_time_interval[0]->total; ?> <span class="label label-success"><i class="icon-white icon-chevron-up"></span></i></span>
 						<?php endif; ?>
 					</li>
 
