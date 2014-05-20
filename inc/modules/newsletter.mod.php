@@ -104,17 +104,17 @@ class Newsletter {
 	function initialize_mensagem_from_post(){
 		$return = new stdClass;
 		$return->id = $_POST['mensagem_id'];
-		$core = new Core();
-		$tools = $core->getTools();
+		//$core = new Core();
+		//$tools = $core->getTools();
 
-		$return->assunto = $tools->getPost('assunto');
-		$return->mensagem = $tools->get_page('mensagem');
-		$return->mensagem_browser = $tools->get_page('mensagem_browser');
-		$return->mensagem_text = $tools->get_page('mensagem_text');
-		$return->url = $tools->getPost('url');
+		$return->assunto = tools::getPost('assunto');
+		$return->mensagem = tools::get_page('mensagem');
+		$return->mensagem_browser = tools::get_page('mensagem_browser');
+		$return->mensagem_text = tools::get_page('mensagem_text');
+		$return->url = tools::getPost('url');
 
 		$return->data_criada = NULL;
-		$return->data_update = $tools->get_timestamp();
+		$return->data_update = tools::get_timestamp();
 		$return->estado = 'Não utilizada';
 		return $return;
 	}
