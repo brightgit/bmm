@@ -16,10 +16,10 @@
 
 
 	//definição de vars importantes provenientes das settings
-	define("FEEDBACK_URL", "http://pme24.net/bmm/inc/modules/feedback.php");
-	define("NEWSLETTER_VIEW_URL", "http://pme24.net/bmm/inc/visualize_news.php");
-	define("SUBSCRIPTION_REMOVE_URL", "http://pme24.net/bmm/inc/remove.php");
-	define("LINK_REDIRECT_URL", "http://pme24.net/bmm/inc/link.php");
+	define("FEEDBACK_URL", base_url("inc/modules/feedback.php"));
+	define("NEWSLETTER_VIEW_URL", base_url("inc/visualize_news.php"));
+	define("SUBSCRIPTION_REMOVE_URL", base_url("inc/remove.php"));
+	define("LINK_REDIRECT_URL", base_url("inc/link.php"));
 	//define("BASE_DIR", $settings->base_path);
 	define("BASE_DIR", $abs_path);
 
