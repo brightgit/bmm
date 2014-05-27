@@ -1,6 +1,6 @@
 <div class="centerfixedwidth">
 		<div style="text-align: center; margin-top: 110px;">
-			<img id="main_logo" src="../inc/img/admin/iorc-logo.jpg" alt="Bright">
+			<img id="main_logo" src="<?php echo base_url("inc/img/admin/app-logo.jpg") ?>" alt="Bright">
 		</div>
 		<div class="well no-borders-top">
 		<h2>Login</h2>

@@ -212,8 +212,6 @@
 
 
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
-				echo $html_body;
-				die("ifnsdpfiandsifu");
 				return $html_body;
 			}
 				

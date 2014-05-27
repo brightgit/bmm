@@ -234,10 +234,10 @@ function load_mod( $mod ) {
 
 
 
-	if ( file_exists( base_path( "application/views/".$view.".php" ) ) ) {
-		include( base_path( "application/views/".$view.".php" ) );
+	if ( file_exists( base_path( "inc/views/".$view.".php" ) ) ) {
+		include( base_path( "inc/views/".$view.".php" ) );
 	}else{
-		echo base_path( "application/views/".$view.".php" );
+		echo base_path( "inc/views/".$view.".php" );
 		die( "View Not found" );
 	}
 
