@@ -28,7 +28,6 @@ class Mass_email {
 		unset($this->debug);
 		$this->lang = null;
 		unset($this->lang);
-		error_reporting(E_ALL);
 	}
 }
 

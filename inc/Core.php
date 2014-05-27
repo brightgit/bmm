@@ -130,7 +130,7 @@ class Core {
 			if($_SERVER["HTTP_HOST"] == "localhost")
 				$host = "http://localhost/bmm";
 			else
-				$host = "http://".$_SERVER["HTTP_HOST"]."/bmmv3";
+				$host = "http://".$_SERVER["HTTP_HOST"]."/bmm";
 			return $host."/".$url;
 		}
 
@@ -143,7 +143,7 @@ class Core {
 					$path = "/Users/bright/Documents/htdocs/bmm";
 			}
 			else{
-				$path = "/home/pmenet/public_html/bmmv3";
+				$path = "/chroot/home/implanto/implantologianews.com/html/bmm";
 			}
 			return $path."/".$url;
 		}

@@ -3,13 +3,13 @@
 class Tools {
 
 	//adiciona mensagens a apresentar ao user em session
-    public function notify_add($message, $type = "info"){
+    static public function notify_add($message, $type = "info"){
 
         $_SESSION["notify"]["messages"][] = array("message" => $message, "type" => $type, "already_displayed" => "false");
     }
 
     //lista as mensagens a apresentar ao user para serem usadas via script
-    public function notify_list(){
+    static public function notify_list(){
 
         if(!empty($_SESSION["notify"]["messages"])){
 
@@ -26,7 +26,7 @@ class Tools {
 
     }
 
-    public function notify_empty(){
+    static public function notify_empty(){
         $_SESSION["notify"]["messages"] = array();
     }
 

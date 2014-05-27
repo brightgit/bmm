@@ -15,7 +15,6 @@ class ViewMass_email {
 		$this->setMod($mod);
 		$this->setCore($core);
 		$this->setTools($core->getTools());
-		error_reporting(E_ALL ^E_STRICT ^E_NOTICE);
 
 		//load swift from settings
 		switch ($_SERVER["HTTP_HOST"]) {
