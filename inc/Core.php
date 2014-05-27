@@ -42,11 +42,11 @@ class Core {
 
 		//dependencies
 		//require_once base_path('/inc/Debug.class.php');
-		require_once base_path('/inc/database.php');
-		require_once base_path('/inc/Tools.class.php');
-		require_once base_path('/inc/modules/user.mod.php');
-		require_once base_path("/inc/modules/settings.mod.php");
-		require_once base_path("/inc/modules/feedback.php");
+		require_once base_path('inc/database.php');
+		require_once base_path('inc/Tools.class.php');
+		require_once base_path('inc/modules/user.mod.php');
+		require_once base_path("inc/modules/settings.mod.php");
+		require_once base_path("inc/modules/feedback.php");
 
 		//carregar as definições da app
 		$this->settings = new Settings;
