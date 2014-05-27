@@ -1,7 +1,5 @@
 
 <div class="dashboard">
-
-	<?php //var_dump($_SESSION); ?>
 	
 	<div class="full-widget">
 

@@ -5,7 +5,6 @@
 class Newsletters
 {
 	public $view = "newsletters/newsletters";
-	public $ckeditor = FALSE;
 	
 	function __construct()
 	{
@@ -170,25 +169,6 @@ class Newsletters
 	}
 
 
-	/* Ckeditor */
-	function setCkEditor(){
-		$this->ckeditor = new CKEditor();
-		$this->ckeditor->basePath = get_include_path().'/libs/ckeditor/';
-		$this->ckeditor->config['extraPlugins'] = "autogrow";
-		$this->ckeditor->config['autoGrow_onStartup'] = true;
-		$this->ckeditor->config['autoGrow_maxHeight'] = 500;
-		$this->ckeditor->config['jqueryOverrideVal'] = true;
-		$this->ckeditor->config['enterMode'] = "CKEDITOR.ENTER_BR";
-		$this->ckeditor->config['fullPage'] = true;
-
-	}
-
-	function getCkEditor(){
-		if (!$this->ckeditor) {
-			$this->setCkEditor();
-		}
-		return $this->ckeditor;
-	}
 	function insert_mensagem($mensagem){
 
 		//gravar a mensagem

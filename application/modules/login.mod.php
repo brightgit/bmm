@@ -57,6 +57,7 @@ class Login
 			}
 			$_SESSION['KCFINDER']['uploadURL'] = "http://www.".$user->sender_host."/bmm/media/".$user->sender_host;
 			$_SESSION['KCFINDER']['uploadDir'] = base_path("media/".$user->sender_host);
+			var_dump($_SESSION);
 			return TRUE;
 		}else{
 			return FALSE;

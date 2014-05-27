@@ -50,13 +50,13 @@
 
 			<div class="span9 well">
 				<label for="mensagem">Mensagem (Email)</label>
-				<?php $newsletters->getCkEditor()->editor("mensagem", ($mensagem->mensagem)); ?>
+				<textarea class="ckeditor" name="mensagem"><?php echo $mensagem->mensagem; ?></textarea>
 
 				<br />
 
 				<label for="mensagem_browser">Mensagem (Browser)</label>
+				<textarea class="ckeditor" name="mensagem_browser"><?php echo $mensagem->mensagem_browser; ?></textarea>
 
-				<?php $newsletters->getCkEditor()->editor("mensagem_browser", ($mensagem->mensagem_browser)); ?>
 
 				<br />
 

@@ -1,5 +1,8 @@
 <?php
+
 //session_start();
+
+//var_dump( $_SESSION );
 
 /** This file is part of KCFinder project
   *
@@ -26,8 +29,8 @@ $_CONFIG = array(
 
     'theme' => "oxygen",
 
-    'uploadURL' => $_SESSION['KCFINDER']['uploadURL'],
-    'uploadDir' => $_SESSION['KCFINDER']['uploadDir'],
+    'uploadURL' => "",
+    'uploadDir' => "",
 
     'dirPerms' => 0755,
     'filePerms' => 0644,
@@ -94,7 +97,7 @@ $_CONFIG = array(
     '_check4htaccess' => true,
     //'_tinyMCEPath' => "/tiny_mce",
 
-    '_sessionVar' => &$_SESSION['KCFINDER_GALLIMP'],
+    '_sessionVar' => &$_SESSION['KCFINDER'],
     //'_sessionLifetime' => 30,
     //'_sessionDir' => "/full/directory/path",
 
