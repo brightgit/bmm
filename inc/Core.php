@@ -41,11 +41,10 @@ class Core {
 		$base_path = base_path();
 
 		//dependencies
-		require_once base_path('/inc/Debug.class.php');
+		//require_once base_path('/inc/Debug.class.php');
 		require_once base_path('/inc/database.php');
 		require_once base_path('/inc/Tools.class.php');
 		require_once base_path('/inc/modules/user.mod.php');
-		require_once base_path("/inc/libs/ckeditor/ckeditor.php");
 		require_once base_path("/inc/modules/settings.mod.php");
 		require_once base_path("/inc/modules/feedback.php");
 
@@ -55,30 +54,6 @@ class Core {
 		//carregar o utilizador a consultar a app
 		$this->user = New BRIGHT_User;
 
-		//set include dir
-		switch($mode){
-	    //development
-			case 'fe':
-			set_include_path ('inc/');
-			break;
-			case 'bo':
-			set_include_path ('../inc/');
-			$this->path = '/admin/';
-			$this->mode = 'bo';
-			break;
-			default:
-			set_include_path ('../inc/');
-			break;
-		}
-
-		switch ($_SERVER["HTTP_HOST"]) {
-			case "localhost":
-			define('_ROOT' , "http://localhost/bmm/admin");
-			break;
-			default:
-			define('_ROOT', 'http://'.$_SERVER["HTTP_HOST"].'/bmmv3/admin/');
-			break;
-		}
 
 		$this->tool = new Tools();
 		
@@ -141,11 +116,15 @@ class Core {
 				$path = "C:/xampp/htdocs/bmm";
 				if(!file_exists($path))	
 					$path = "/Users/bright/Documents/htdocs/bmm";
+
 			}
 			else{
 				$path = "/chroot/home/implanto/implantologianews.com/html/bmm";
+
 			}
+
 			return $path."/".$url;
+
 		}
 
 		function die_sql( $query = "" ){

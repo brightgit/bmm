@@ -1,16 +1,63 @@
 
 <div class="dashboard">
+
+	<?php //var_dump($_SESSION); ?>
 	
 	<div class="full-widget">
+
+		<?php if ($_SESSION["user"]->is_admin): ?>
+			
+			<?php 
+			//var_dump($_SESSION["dashboard_senders"]);
+			 ?>
+			 <form action="index.php?mod=dashboard" method="post">
+				<table class="compact" width="100%">
+					<tr>
+						<td class="alignright" style="width:25%;">
+							<span class="label">A ver dados de:</span>
+						</td>
+						<td colspan="2">
+							<select name="dashboard_senders" onchange="$('#change_senders_button').removeClass('hide');" style="width:300px;">
+							<?php $all_ids = ''; ?>
+							<?php foreach ($dashboard->all_senders as $key => $value): ?>
+									<?php $all_ids .= ( empty($all_ids) )?$value["id"]:','.$value["id"]; ?>
+									<option <?php echo ( $value["id"] == $_SESSION["dashboard_senders"] )?' selected="selected"':''; ?> name="dashboard_senders" value="<?php echo $value["id"]; ?>" > <?php echo $value["email"] ?></option>
+							<?php endforeach ?>
+									<option <?php echo ( $all_ids == $_SESSION["dashboard_senders"] )?' selected="selected"':''; ?> name="dashboard_senders" value="<?php echo $all_ids; ?>" >Todos</option>
+							</select>
+							<button type="submit" id="change_senders_button" class="btn btn-primary hide" >Alterar</button>
+							<?php  /* Este bloco é para estar por checkboxs em vez de select
+							$users_a = explode(",", $_SESSION["dashboard_senders"] );
+							<?php foreach ($dashboard->all_senders as $key => $value): ?>
+								<label class="dash-checkbox">
+									<input <?php echo ( in_array($value["id"], $users_a) )?' checked="checked"':''; ?> type="checkbox" name="dashboard_senders[]" value="<?php echo $value["id"]; ?>" onchange="$('#change_senders_button').removeClass('hide');" /> <?php echo $value["email"] ?>
+								</label>
+							<?php endforeach ?>
+							 */ ?>
+						</td>
+						<td style="width:25%;">
+							<span class="number"><?php echo $dashboard->num_users; ?></span>
+							<span class="label">Utilizadores</span>
+						</td>
+					</tr>
+				</table>
+				</form>
+
+			
+			<div class="clear"></div>
+			<hr class="data-split" />
+		<?php endif ?>
+
+		
 		<div class="collumn">
 			<span class="operator">/</span>
-			<span class="number"><?php echo $dashboard->total_delivered ?></span>
+			<span class="number"><?php echo ( $dashboard->total_delivered < 0 )? 0 : $dashboard->total_delivered; ?></span>
 			<span class="label">Entregues</span>			
 		</div>
 		
 		<div class="collumn">
 			<span class="operator">=</span>
-			<span class="number"><?php echo $dashboard->total_sent ?></span>
+			<span class="number"><?php echo (empty($dashboard->total_sent))? 0:$dashboard->total_sent; ?></span>
 			<span class="label">Enviados</span>
 		</div>
 		
@@ -80,18 +127,6 @@
 								<option value="semester">Último semestre</option>						
 								<option value="year">Último ano</option>
 							</select>
-							<?php if ($_SESSION["user"]->is_admin): ?>
-								<label>Utilizador</label>
-								<select name="time_period[envios_pie_users]">
-								<?php foreach ($dashboard->all_users as $key => $value): ?>
-									<?php $ids[] = $value["id"]; ?>
-									<option <?php echo ( $_SESSION["envios_pie_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
-								<?php endforeach ?>
-									<option <?php echo ( $_SESSION["envios_pie_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
-
-								</select>
-								
-							<?php endif ?>
 							<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 						</form>
 					</div>
@@ -135,18 +170,6 @@
 							<option value="semester">Último semestre</option>						
 							<option value="year">Último ano</option>
 						</select>
-						<?php if ($_SESSION["user"]->is_admin): ?>
-							<label>Utilizador</label>
-							<select name="time_period[subscritores_bars_users]">
-							<?php foreach ($dashboard->all_users as $key => $value): ?>
-								<?php $ids[] = $value["id"]; ?>
-								<option <?php echo ( $_SESSION["subscritores_bars_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
-							<?php endforeach ?>
-								<option <?php echo ( $_SESSION["subscritores_bars_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
-
-							</select>
-							
-						<?php endif ?>
 						<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 					</form>
 				</div>
@@ -219,18 +242,6 @@
 							<option value="semester">Último semestre</option>						
 							<option value="year">Último ano</option>
 						</select>
-						<?php if ($_SESSION["user"]->is_admin): ?>
-							<label>Utilizador</label>
-							<select name="time_period[totais_stats_users]">
-							<?php foreach ($dashboard->all_users as $key => $value): ?>
-								<?php $ids[] = $value["id"]; ?>
-								<option <?php echo ( $_SESSION["totais_stats_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo $value["id"] ?>"><?php echo $value["name"] ?></option>
-							<?php endforeach ?>
-								<option <?php echo ( $_SESSION["totais_stats_users"] == $value["id"] )?'selected="selected"':''; ?> value="<?php echo implode(",", $ids); ?>">Todos</option>
-
-							</select>
-							
-						<?php endif ?>
 						<input type="submit" name="submit" value="Alterar" class="btn btn-primary" />
 					</form>
 				</div>

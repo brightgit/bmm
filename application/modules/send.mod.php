@@ -59,7 +59,7 @@ class Send
 				}
 				//inserir novo mês
 				else{
-					$sql = "REPLACE stats SET mensagens_enviadas = mensagens_enviadas + 1, month = ". $month . ", year = " . $year . ", user_id  = '".$_SESSION["user"]->id. "'";
+					$sql = "REPLACE stats SET mensagens_enviadas = mensagens_enviadas + 1, month = ". $month . ", sender_id = '".$_POST["sender_id"]."' year = " . $year . ", user_id  = '".$_SESSION["user"]->id. "'";
 					$query = mysql_query($sql);
 				}
 
@@ -96,7 +96,7 @@ class Send
 		if($mensagem = mysql_fetch_object($res)){
 
 			//envio via Mandril
-			if( true){
+			if( true ){
 
 				//obter dados de envio (sender && user)
 				$user_id = $_SESSION["user"]->id; //info do user que submeteu o envio
@@ -116,7 +116,9 @@ class Send
 				$mensagem->envio_id = $mensagem->id; //falsear o envio
 				
 			
-				require_once 'mandrill-api-php/src/Mandrill.php'; //Not required with Composer
+				//Not required with Composer
+				require_once base_path( 'inc/mandrill-api-php/src/Mandrill.php' );
+				
 				$mandrill = new Mandrill('jo8Bhu48xPYosSwJooS0Gg');
 
 				$html_body = BRIGHT_mail_feedback::inject($mensagem);

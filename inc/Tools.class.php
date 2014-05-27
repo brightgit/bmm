@@ -3,35 +3,41 @@
 class Tools {
 
 	//adiciona mensagens a apresentar ao user em session
+
     static public function notify_add($message, $type = "info"){
 
-        $_SESSION["notify"]["messages"][] = array("message" => $message, "type" => $type, "already_displayed" => "false");
-    }
+
+		$_SESSION["notify"]["messages"][] = array("message" => $message, "type" => $type, "already_displayed" => "false");
+	}
 
     //lista as mensagens a apresentar ao user para serem usadas via script
+
     static public function notify_list(){
 
-        if(!empty($_SESSION["notify"]["messages"])){
+
+		if(!empty($_SESSION["notify"]["messages"])){
 
 
-            echo "<ul id=\"notify-messages\">";
-            foreach ($_SESSION["notify"]["messages"] as $message) {
-                echo "<li data-type=\"".$message["type"]."\">" . $message["message"] . "</li>";
-            }
-            echo "</ul>";
-        }
+			echo "<ul id=\"notify-messages\">";
+			foreach ($_SESSION["notify"]["messages"] as $message) {
+				echo "<li data-type=\"".$message["type"]."\">" . $message["message"] . "</li>";
+			}
+			echo "</ul>";
+		}
 
         //limpar o queue de notifications
-        self::notify_empty();
+		self::notify_empty();
 
-    }
+	}
+
 
     static public function notify_empty(){
         $_SESSION["notify"]["messages"] = array();
     }
 
+
 	static function is_email($email){
-	    return preg_match("/^[_a-z0-9-]+(\.[_a-z0-9+-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i", $email);
+		return preg_match("/^[_a-z0-9-]+(\.[_a-z0-9+-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i", $email);
 	}
 
 	static function escape_single_quotes($string){
@@ -294,41 +300,40 @@ class Tools {
 					?>
 				</select>
 			</form>
-			</div><?php
-		}
+		</div><?php
+	}
 
-		public static function doAction($table,$action,$items, $module = 0,$lang = 1){
-			$debug = new Debug();
-			$wLang = '';
-			if($lang)
-				$wLang = "lang = '{$_SESSION['lang']}' and";
+	public static function doAction($table,$action,$items, $module = 0,$lang = 1){
+		$wLang = '';
+		if($lang)
+			$wLang = "lang = '{$_SESSION['lang']}' and";
 
-			if(sizeof($items)>0){
-				switch ($action) {
-					case 'delete':
-					$sql = "delete from $table where $wLang (";
-					                                         if($module != 0){
-					                                         	$sql2 = "delete from sub_menus where module = $module and $wLang (";
-					                                         }
-					                                         break;
-					                                         case 'activate':
-					                                         $sql = "update $table set is_active = 1 where $wLang (";
-					                                                                                               break;
-					                                                                                               case 'deactivate':
-					                                                                                               $sql = "update $table set is_active = 0 where $wLang (";
-					                                                                                                                                                     break;
-					                                                                                                                                                     default:
-					                                                                                                                                                     echo _('Acção solicitada não reconhecida. Tente novamente');
-					                                                                                                                                                     return FALSE;
-					                                                                                                                                                     break;
-					                                                                                                                                                 }
-					                                                                                                                                                 foreach ($items as $key) {
-					                                                                                                                                                 	$sql .= "id = $key or ";
-					                                                                                                                                                 	if($module != 0)
-					                                                                                                                                                 		$sql2 .= "module_id = $key or ";
-					                                                                                                                                                 }
-					                                                                                                                                                 
-					                                                                                                                                                 $sql = substr($sql,0,-3) . ')';
+		if(sizeof($items)>0){
+			switch ($action) {
+				case 'delete':
+				$sql = "delete from $table where $wLang (";
+					if($module != 0){
+						$sql2 = "delete from sub_menus where module = $module and $wLang (";
+					}
+					break;
+					case 'activate':
+					$sql = "update $table set is_active = 1 where $wLang (";
+						break;
+						case 'deactivate':
+						$sql = "update $table set is_active = 0 where $wLang (";
+							break;
+							default:
+							echo _('Acção solicitada não reconhecida. Tente novamente');
+							return FALSE;
+							break;
+						}
+						foreach ($items as $key) {
+							$sql .= "id = $key or ";
+							if($module != 0)
+								$sql2 .= "module_id = $key or ";
+						}
+
+						$sql = substr($sql,0,-3) . ')';
 $sql2 = substr($sql2,0,-3) . ')';
 			/*if(sizeof($items)>1){
 				$sql .= ')';
@@ -337,14 +342,11 @@ $sql2 = substr($sql2,0,-3) . ')';
 $res = mysql_query($sql);
 if($action == 'delete' && $module != 0)
 	$res &= mysql_query($sql2);
-if(!$res)
-	$debug->dbErrors($sql."<br/>".$sql2."<br/>");
 
 return $res;
 }
 else
 	return FALSE;
-$debug->__destruct();
 }
 
 
@@ -356,31 +358,11 @@ public static function inputValue($inputName, $dbValue){
 		return $dbValue;
 }
 
-}
-
-class Modules{
-
-	private $debug = '';
-
-	function __construct() {
-	/*	if($mode!='')
-	$this->setMode($mode);*/
-	$this->debug = new Debug();
-}
-
-function __destruct() {
-        //$this->mode = null;
-	$this->debug->__destruct();
-        //unset($this->mode);
-	unset($this->debug);
-}
 
 public static function getModulesList(){
 	$sql = "select * from modules where lang = '{$_SESSION['lang']}'";
 
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	if(mysql_num_rows($res)>0){
 		return $res;
 	}else
@@ -394,8 +376,7 @@ public static function getModulesSelect($id){
 	on aux.checked = m.id
 	where lang = '{$_SESSION['lang']}' AND `is_active`='1'";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
+
 	if(mysql_num_rows($res)>0){
 		return $res;
 	}else
@@ -409,8 +390,6 @@ public static function getModulesPages($id){
 	on aux.checked = m.id
 	where lang = '{$_SESSION['lang']}'";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	if(mysql_num_rows($res)>0){
 		return $res;
 	}else
@@ -422,8 +401,6 @@ public static function getModulesDB($id){
 	inner join sub_menus sm on sm.module = m.id and sm.lang = '{$_SESSION['lang']}'
 	where sm.id = $id and m.lang = '{$_SESSION['lang']}'";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	if(mysql_num_rows($res)>0){
 		return mysql_fetch_object($res)->db;
 	}else
@@ -434,16 +411,12 @@ public static function getModulesPagesByMod($mod_id,$id = 0){
 	$sql = "select db from modules m
 	where m.id = $mod_id and m.lang = '{$_SESSION['lang']}'";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	$mod = mysql_fetch_object($res)->db;
 	$sql = "select * from $mod m
 	left join (select module_id as checked from sub_menus where id = $id and lang = '{$_SESSION['lang']}') aux
 	on aux.checked = m.id
 	where lang = '{$_SESSION['lang']}'";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	if(mysql_num_rows($res)>0){
 		return $res;
 	}else
@@ -456,8 +429,6 @@ public static function getModulesMod($id){
 	left join sub_menus sm on sm.module = m.id and sm.lang = '{$_SESSION['lang']}'
 	where m.id = $id and m.lang = '{$_SESSION['lang']}' limit 1";
 	$res = mysql_query($sql);
-	if(!$res)
-		$this->debug->dbErrors($sql);
 	if(mysql_num_rows($res)>0){
 		return mysql_fetch_object($res)->module;
 	}else
