@@ -65,6 +65,7 @@ class Dashboard {
 	}
 
 	function set_time_intervals(){
+
 		//load em session - envios_pie, subscritores_bars, totais_stats
 		$_SESSION["envios_pie"] = empty($_SESSION["envios_pie"]) ? "trimester" : $_SESSION["envios_pie"];
 		$_SESSION["subscritores_bars"] = empty($_SESSION["subscritores_bars"]) ? "trimester" : $_SESSION["subscritores_bars"];
