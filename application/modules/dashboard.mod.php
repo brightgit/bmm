@@ -3,7 +3,9 @@
  * Dashboard
  */
 class Dashboard {
+
 	public $view = "dashboard/dashboard";
+
 	public $subscribers_by_interval;
 	public $subscribers_per_month;
 	public $hard_bounces_count;
@@ -61,9 +63,15 @@ class Dashboard {
 		$_SESSION["subscritores_bars"] = empty($_SESSION["subscritores_bars"]) ? "trimester" : $_SESSION["subscritores_bars"];
 		$_SESSION["totais_stats"] = empty($_SESSION["totais_stats"]) ? "trimester" : $_SESSION["totais_stats"];
 
-		$_SESSION["envios_pie_users"] = empty($_SESSION["envios_pie_users"]) ? $_SESSION["user"]->id : $_SESSION["envios_pie_users"];
-		$_SESSION["subscritores_bars_users"] = empty($_SESSION["subscritores_bars_users"]) ? $_SESSION["user"]->id : $_SESSION["subscritores_bars_users"];
-		$_SESSION["totais_stats_users"] = empty($_SESSION["totais_stats_users"]) ? $_SESSION["user"]->id : $_SESSION["totais_stats_users"];
+		if ( $_SESSION["user"]->is_admin ) {
+			$ids = "1,6,7,8";
+		}else{
+			$ids = $_SESSION["user"]->id;
+		}
+
+		$_SESSION["envios_pie_users"] = empty($_SESSION["envios_pie_users"]) ? $ids : $_SESSION["envios_pie_users"];
+		$_SESSION["subscritores_bars_users"] = empty($_SESSION["subscritores_bars_users"]) ? $ids : $_SESSION["subscritores_bars_users"];
+		$_SESSION["totais_stats_users"] = empty($_SESSION["totais_stats_users"]) ? $ids : $_SESSION["totais_stats_users"];
 
 		if(!empty($_POST["time_period"]["envios_pie"])) $_SESSION["envios_pie"] = $_POST["time_period"]["envios_pie"];
 		if(!empty($_POST["time_period"]["subscritores_bars"])) $_SESSION["subscritores_bars"] = $_POST["time_period"]["subscritores_bars"];
@@ -269,13 +277,16 @@ class Dashboard {
 
 		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
 		$time_interval_now = self::get_current_time_interval($time_period);
+		//echo $time_interval_now;
 		$time_interval = self::load_time_interval_map($time_period);
+		//var_dump($time_interval);
 
 		$month_start = $time_interval[$time_interval_now]["from"];
 		$month_end = $time_interval[$time_interval_now]["to"];
 
 
 		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . " and user_id in (".$_SESSION["envios_pie_users"].")";
+		//echo $sql;
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
@@ -355,6 +366,7 @@ class Dashboard {
 	//como vai ser necessaria para escala de tempo
 	function load_time_interval_map($time_type){
 
+
 		//devolve um mapeamento de datas, consoante o que for solicitado, por forma a ser mais simples a utilização de outras escalas temporais
 		switch ($time_type) {
 			case 'trimester':
@@ -372,8 +384,12 @@ class Dashboard {
 
 			case 'year'	:
 				$time_map[1] = array("from" => 1, "to" => 12);
+				break;
 			default:
-				# code...
+				$time_map[1] = array("from" => 1, "to" => 3);
+				$time_map[2] = array("from" => 3, "to" => 6);
+				$time_map[3] = array("from" => 6, "to" => 9);
+				$time_map[4] = array("from" => 9, "to" => 12);
 				break;
 		}
 
@@ -386,16 +402,18 @@ class Dashboard {
 
 	function get_current_time_interval($time_interval){
 
+
 		switch ($time_interval) {
-			case 'trimester':
-				$output =  floor((date("m") / 3));
-				break;
 			case 'semester':
 				$output = ceil((date("m") / 6));
 				break;
 			case 'year':
 				$output = 1;
+			default:
+				$output =  floor((date("m") / 3));
+				break;
 		}
+
 		return $output;
 	}
 
@@ -442,7 +460,5 @@ class Dashboard {
 	}
 }
 
-
-$dashboard = new Dashboard;
 
 ?>

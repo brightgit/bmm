@@ -47,18 +47,18 @@ class Login extends Core{
 		where
 		((u.email = '$user' and ug.email_login = 1) or
 		 (u.username = '$user' and ug.username_login = 1)) and
-u.password = MD5('{$pass}') and
-u.is_active = 1";
-else
+		u.password = MD5('{$pass}') and
+		u.is_active = 1";
+		else
 
-	$sql = "SELECT u.id,u.first_name,u.last_name,u.username,u.email,u.date_joined,u.user_group,ug.is_admin from users u
-inner join user_groups ug on u.user_group = ug.id
-where
-((u.email = '$user' and ug.email_login = 1) or
- (u.username = '$user' and ug.username_login = 1)) and
-u.password = MD5('{$pass}') and
-u.is_active = 1 and
-ug.is_admin = 0";
+			$sql = "SELECT u.id,u.first_name,u.last_name,u.username,u.email,u.date_joined,u.user_group,ug.is_admin from users u
+		inner join user_groups ug on u.user_group = ug.id
+		where
+		((u.email = '$user' and ug.email_login = 1) or
+		 (u.username = '$user' and ug.username_login = 1)) and
+		u.password = MD5('{$pass}') and
+		u.is_active = 1 and
+		ug.is_admin = 0";
 
 
 $res = mysql_query($sql);

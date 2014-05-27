@@ -400,22 +400,34 @@ if($_GET["act"] == "get_exclusions"){
 		$order = " ORDER BY s.`id` ".$dir;
 	}
 
-	$sql = "select s.* from subscribers s";
+	if (!$_SESSION["user"]->is_admin) {
+		$sql = "select s.* from subscribers s
+			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = s.id
+			left join user_permissions on user_permissions.group_id = subscriber_by_cat.id_categoria
+			where user_permissions.user_id = '".$_SESSION["user"]->id."'
+		";
+	}else{
+		$sql = "select s.* from subscribers s where 1";
+	}
 
-	if(isset($_GET["group_id"]))
-		$sql .= " where s.is_active = 0";
+	$sql .= " and s.is_active = 0";
 
 	if($_GET['sSearch']!=''){
 		$sql_part[0] = "(nome LIKE '".$_GET['sSearch']."' OR nome LIKE '%".$_GET['sSearch']."' OR nome LIKE '".$_GET['sSearch']."%' OR nome LIKE '%".$_GET['sSearch']."%')";
 		$sql_part[1] = "(email LIKE '".$_GET['sSearch']."' OR email LIKE '%".$_GET['sSearch']."' OR email LIKE '".$_GET['sSearch']."%' OR email LIKE '%".$_GET['sSearch']."%')";
 
 
-		$sql .= " AND " . implode(" OR ", $sql_part).' GROUP BY s.id';
+		$sql .= " AND ( " . implode(" OR ", $sql_part).' ) GROUP BY s.id';
 	}else{
 		$sql .= "";
 	}
 
+
 	$sql .= $order;
+
+	//echo '<hr />';
+	//echo $sql;
+	//echo '<hr />';
 
 	$sql_count = $sql;
 	

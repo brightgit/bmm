@@ -26,7 +26,7 @@ class Core {
 	private $ckeditor = '';
 	public $user;
 	public $settings;
-	public static $base_path = "/Users/bright/Documents/htdocs/bmm";
+	public static $base_path = "C:/xampp/htdocs/bmm";
 
 	function __construct($mode = 'fe') {
 
@@ -76,7 +76,7 @@ class Core {
 			define('_ROOT' , "http://localhost/bmm/admin");
 			break;
 			default:
-			define('_ROOT', 'http://'.$_SERVER["HTTP_HOST"].'/bmm/admin/');
+			define('_ROOT', 'http://'.$_SERVER["HTTP_HOST"].'/bmmv3/admin/');
 			break;
 		}
 
@@ -110,6 +110,7 @@ class Core {
 
 		function redirect($uri = '', $method = 'location', $http_response_code = 302)
 		{
+
 			if ( ! preg_match('#^https?://#i', $uri))
 			{
 				$uri = base_url($uri);
@@ -129,7 +130,7 @@ class Core {
 			if($_SERVER["HTTP_HOST"] == "localhost")
 				$host = "http://localhost/bmm";
 			else
-				$host = "http://".$_SERVER["HTTP_HOST"]."/bmm";
+				$host = "http://".$_SERVER["HTTP_HOST"]."/bmmv3";
 			return $host."/".$url;
 		}
 
@@ -141,8 +142,9 @@ class Core {
 				if(!file_exists($path))	
 					$path = "/Users/bright/Documents/htdocs/bmm";
 			}
-			else
-				$path = "/chroot/home/TO_BE_DETERMINED_/pmenet/html";
+			else{
+				$path = "/home/pmenet/public_html/bmmv3";
+			}
 			return $path."/".$url;
 		}
 
@@ -222,6 +224,54 @@ class Core {
 	}
 
 }
+
+function load_mod( $mod ) {
+	if ( file_exists( base_path( "application/modules/" . $mod . ".mod.php" ) ) ) {
+		include base_path( "application/modules/" . $mod . ".mod.php" );
+	}else{
+		echo 'Module not found:<br />';
+		echo base_path( "application/modules/" . $mod . ".mod.php" );
+		die( );
+	}
+	//Iniciar o módulo (class), lá dentro deve processar as restantes variáveis.
+
+	//$app =  new ucfirst( $mod );
+	//eval("\$app = new {$mod}( );");
+	$var = ucfirst( $mod );
+	
+
+	$$mod = new $var();	//Já tenho a class com o módulo
+	
+	//var_dump( $$mod );
+	//data em $app->data;
+	//$data = $app;
+	//view em $app->data;
+	$view = $$mod->view;
+	//var_dump( $$mod->load_menu );
+	$this->load_menu = $$mod->load_menu;
+
+	ob_start();
+
+
+
+
+	if ( file_exists( base_path( "application/views/".$view.".php" ) ) ) {
+		include( base_path( "application/views/".$view.".php" ) );
+	}else{
+		echo base_path( "application/views/".$view.".php" );
+		die( "View Not found" );
+	}
+
+	$this->output = ob_get_contents();
+
+	ob_end_clean();
+
+
+
+
+
+}
+
 
 function getMod($module = '',$params = '') {
 		//$inc = get_include_path();

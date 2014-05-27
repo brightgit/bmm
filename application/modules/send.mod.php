@@ -1,63 +1,24 @@
-﻿<?php
-//Everything was moved to send.mod.
-
-class ViewMass_email {
-
-	private $mod = '';
-	private $core = '';
-	private $debug = '';
-	private $tools = '';
-	private $modName = '';
-	private $option = '';
-
-	function __construct($mod, $core, $params) {
-
-		$this->setMod($mod);
-		$this->setCore($core);
-		$this->setTools($core->getTools());
-		error_reporting(E_ALL ^E_STRICT ^E_NOTICE);
-
-		//load swift from settings
-		switch ($_SERVER["HTTP_HOST"]) {
-			case 'localhost':
-				//require_once('../libs/Swift-4.2.2/lib/swift_required.php');
-			break;
-			
-			default:
-				//require_once($this->core->settings->swift_absolute_path);
-			break;
-		} 
-
-
-		if(isset($_POST['text_email'])){
-			//Enviar email de teste
-			$this->send_test_email();
+<?php 
+/**
+* 
+*/
+class Send
+{
+	public $view = "send/pre_send";
+	public $data = FALSE;
+	
+	function __construct()
+	{
+		if ( !empty($_GET["view"]) ) {
+			$this->$_GET["view"]();
 		}
-		
-		
-		#programar envio por grupos
-		if( isset($_POST['enviar_grupo']) ) {
-			$groups = isset($_POST["groups"]) ? $_POST["groups"] : false;
-			if($groups && count($groups) > 0)
-				$this->program_email( $groups );
-			else{
-				echo "<div class=\"alert alert-error\"><b>N&atilde;o foram seleccionados grupos</b>. Volte atr&aacute;s e reveja os grupos para os quais pretende enviar esta mensagem</div>";
-				echo "<div><a class=\"btn btn-primary\" href=\"".$_SERVER["HTTP_REFERER"]."\"><i class=\"icon-white icon-circle-arrow-left\"></i> Rever grupos</a></div>";
-			}
-				
-		}
-		
-		#Isto já não deve estar a ser utilizado
-		if(isset($_POST['todos']) || isset($_POST['en']) || isset($_POST['pt'])){
-			//Enviar email de teste
-			$this->send_email();
-		}
-		
-
-		$this->modName = 'mass_email';
 	}
 
-	function program_email( $grupos ) {
+	/* Controllers */
+	function pre_send() { }
+	function enviar() { $this->view = "send/enviar"; }
+	function send_to_all() {
+		$grupos = $_POST["groups"];
 
 		//existindo grupos
 		if(count($grupos) > 0){
@@ -70,13 +31,13 @@ class ViewMass_email {
 			$res = mysql_query($query) or die(mysql_error());
 			if($mensagem = mysql_fetch_object($res)){
 				//Adicionar envio
-				$query = "insert into envios values(null, '".$mensagem->id."', '".$_SESSION["user"]->id."', now())";
-				mysql_query($query) or die( mysql_error() );
+				$query = "insert into envios values(null, '".$mensagem->id."', '".$_SESSION["user"]->id."', '".$_POST["sender_id"]."', now())";
+				mysql_query($query) or die( mysql_error() . $query );
 				$res_envio = mysql_query("select * from envios order by id desc limit 1") or die( mysql_error() );
 				$envio = mysql_fetch_array($res_envio);
 
 				//BRIGHT_mail_feedback::insert_newsletter($_POST['mensagem_id']); //inserir na db
-				$query ="INSERT INTO `mensagens_enviadas` (SELECT NULL, ".$mensagem->id.", '".$envio["id"]."', `id_subscriber`, NULL, 3 FROM `subscriber_by_cat` inner join subscribers on subscribers.id = subscriber_by_cat.id_subscriber WHERE `subscriber_by_cat`.`id_categoria` IN (".$grupos_imploded.") and subscribers.is_active = 1 group by subscriber_by_cat.id_subscriber)";
+				$query ="INSERT INTO `mensagens_enviadas` (SELECT NULL, ".$mensagem->id.", '".$envio["id"]."', `id_subscriber`, '".$_POST["sender_id"]."', NULL, 3 FROM `subscriber_by_cat` inner join subscribers on subscribers.id = subscriber_by_cat.id_subscriber WHERE `subscriber_by_cat`.`id_categoria` IN (".$grupos_imploded.") and subscribers.is_active = 1 group by subscriber_by_cat.id_subscriber)";
 
 
 				//echo "<textarea>" . $query . "</textarea>";
@@ -113,8 +74,8 @@ class ViewMass_email {
 				$query = "UPDATE `mensagens` SET `estado`='Enviada', `estado_code`='1' WHERE `id` = '".$mensagem->id."'";			
 				mysql_query( $query ) or die(mysql_error());
 
-				echo "<div class=\"alert alert-success\" >A sua newsletter foi colocada em lista de espera. Por favor, aguarde...</div>";
-				echo '<meta http-equiv="refresh" content="2; url=?mod=newsletter&view=messages">';
+				tools::notify_add( "A sua newsletter foi colocada em lista de espera. Por favor, aguarde...", "success" );
+				redirect( "index.php?mod=newsletters&view=messages" );
 
 			}else{
 				return false;
@@ -124,10 +85,10 @@ class ViewMass_email {
 		//não existindo grupos...
 		return false;
 
-		
+
 	}
-	
-	function send_test_email(){
+
+	function send_test_email() {
 
 		//Recebe os valores por POST;
 		$query = "SELECT mensagens.* FROM `mensagens` WHERE `id`='".$_POST['mensagem_id']."'";
@@ -215,77 +176,64 @@ class ViewMass_email {
 					$sql = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string( $mensagem->mensagem )."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'sucesso')";
 					$query = mysql_query($sql);
 					tools::notify_add("Mensagem de teste enviada com sucesso", "success");
-					echo '<meta http-equiv="refresh" content="3; url=?mod=newsletter&view=pre_send&id='.$_POST['mensagem_id'].'">';
+					redirect( "admin/index.php?mod=send&view=pre_send&id=".$_POST["mensagem_id"] );
 				}
 				else
 				{
 					$sql = "INSERT INTO `mensagens_teste_enviadas` (`mensagem_id`, `assunto`, `mensagem_text`, `mensagem`, `destino`, `hora`, `output`) VALUES ('".$_POST['mensagem_id']."', '".$mensagem->assunto."', '".$mensagem->mensagem_text."', '".mysql_real_escape_string($mensagem->mensagem)."', '".$_POST['text_email']."', '".date("Y-m-d H:i:s")."', 'erro')";
 					$query = mysql_query($sql);
-					tools::notify_add("Ocorreu um erro ao enviar o email de teste");
-					echo '<meta http-equiv="refresh" content="50; url=?mod=newsletter&view=pre_send&id='.$_POST['mensagem_id'].'">';
+					tools::notify_add("Ocorreu um erro ao enviar o email de teste", "error");
+					redirect( "admin/index.php?mod=send&view=pre_send&id=".$_POST["mensagem_id"] );
 				}
 
 
 			}
 
 		}else{
-			return false;
+			tools::notify_add("Mensagem não encontrada.", "error");
+			redirect( "admin/index.php?mod=send&view=pre_send&id=".$_POST["mensagem_id"] );
 		}
 	}
-	
-	
-	function __destruct() {
-		$this->login = null;
-		unset($this->login);
-		$this->ckeditor = null;
-	}
 
-	function getMod() {
-		return $this->mod;
-	}
 
-	function setMod($mod) {
-		$this->mod = $mod;
+	/* Models */
+	function get_mensagem_by_id($id){	//Cópias:  newsletters.mod, send.mod acho que há um cópia noutro lado
+		$query = "SELECT * FROM `mensagens` WHERE `id` = '".$id."'";
+		$res = mysql_query($query) or die(mysql_error());
+		if( mysql_num_rows($res) < 1 ){
+			return false;
+		}else{
+			return mysql_fetch_object($res);
+		}
 	}
+	//listar os grupos a quais os utilizadores têm permissão
+	public function get_sender_permissions($user_id){
 
-	function getCore() {
-		return $this->core;
-	}
+		//um utilizador is_admin tem acesso a tudo
+		$sql = "SELECT s.id, s.email, s.`email_from` FROM user_sender_permissions usp
+		LEFT JOIN users u ON u.id = usp.user_id
+		LEFT JOIN senders s ON s.id = usp.sender_id
+		WHERE usp.user_id = ".$user_id;	
 
-	function setCore($core) {
-		$this->core = $core;
-	}
+		$query = mysql_query($sql);
 
-	function getDebug() {
-		return $this->debug;
-	}
+		if($query){
+			while ($row = mysql_fetch_object($query))
+				$output[$row->id] = array("email_from" => $row->email_from, "email" => $row->email);
 
-	function setDebug() {
-		$this->debug = new Debug();
-	}
+			return $output;
+		}
 
-	function setTools($tools) {
-		$this->tools = $tools;
-	}
-
-	function getTools() {
-		return $this->tools;
-	}
-
-	function setCkEditor(){
-		$this->ckeditor = new CKEditor();
-		$this->ckeditor->basePath = get_include_path().'/libs/ckeditor/';
-		$this->ckeditor->config['extraPlugins'] = "autogrow";
-		$this->ckeditor->config['autoGrow_onStartup'] = true;
-		$this->ckeditor->config['autoGrow_maxHeight'] = 500;
-		$this->ckeditor->config['jqueryOverrideVal'] = true;
+		return false;
 
 	}
-
-	function getCkEditor(){
-		return $this->ckeditor;
+	function get_send_test( $id ){
+		$query = "SELECT * FROM `mensagens_teste_enviadas` WHERE `mensagem_id` = '".$id."' ORDER BY `hora` DESC";
+		$res = mysql_query($query) or die(mysql_error());
+		return $res;
 	}
+
 
 }
-?>
 
+ ?>

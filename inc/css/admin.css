@@ -1390,7 +1390,7 @@ div.table-actions{
 
 /* noty styles - notification messages */
 div#messages{
-	display: none;
+	/* display: none; */
 }
 .noty_bar{
 	background: #f8f8f8;

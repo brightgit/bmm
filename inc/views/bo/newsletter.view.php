@@ -72,7 +72,7 @@ class ViewNewsletter {
 
 		if($_GET["view"] == "statistics"){
 			if( isset($_GET['id']) ) {
-				$this->show_statistics( $_GET['id'] );
+				$this->show_statistics2( $_GET['id'] );
 			}else{
 				$this->show_statistics_general( );
 			}
@@ -93,7 +93,7 @@ class ViewNewsletter {
 			$this->pre_visualizar($_GET['id']);
 		}elseif($_GET['view'] == 'enviar'){
 			$this->enviar($_GET['id']);
-		}elseif($_GET['view'] == 'categorias'){
+		}elseif($_GET['view'] == 'categorias'){	//Grupos
 			if( isset($_POST['submit_add_categoria']) ) {
 				$this->mod->add_categoria();
 			}
@@ -116,7 +116,7 @@ class ViewNewsletter {
 		return $result = mysql_fetch_object($query);
 	}
 
-	public function get_senders(){
+	public function get_senders(){ //Moved to utilizadores.mod
 		$sql = "SELECT * from senders";
 		$query = mysql_query($sql);
 
@@ -132,7 +132,7 @@ class ViewNewsletter {
 	}
 
 
-	public function get_grupos(){
+	public function get_grupos(){	//moved to utilizadores
 
 		$sql = "SELECT * from newsletter_categorias";
 		$query = mysql_query($sql);
@@ -148,7 +148,7 @@ class ViewNewsletter {
 		return false;
 	}
 
-	public function get_grupo($id){
+	public function get_grupo($id){	//Passado para mod/grupos
 
 		$sql = "SELECT * from newsletter_categorias WHERE id = ".($id);
 		$query = mysql_query($sql);
@@ -174,7 +174,7 @@ class ViewNewsletter {
 		return false;
 	}
 
-	public function remove_message($id){
+	public function remove_message($id) {	//moved to newsletter.mod
 		$sql = "DELETE FROM mensagens WHERE id = ".$id;
 		$query = mysql_query($sql);
 
@@ -183,7 +183,7 @@ class ViewNewsletter {
 		return true;
 	}
 
-	public function duplicate_message($id){
+	public function duplicate_message($id){	//moved to newsletter.mod
 		$sql = "INSERT INTO mensagens (`id`, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem`) ( SELECT  NULL, `url`, `assunto`, `mensagem_text`, `mensagem_browser`, `mensagem` FROM mensagens WHERE id = {$id})";
 		$query = mysql_query($sql);
 
@@ -208,7 +208,7 @@ class ViewNewsletter {
 			return false;
 	}
 
-	public function update_grupo($id){
+	public function update_grupo($id){	//passado para mod grupos / 
 		$nome = $_POST["group_name"];
 		$is_default = $_POST["is_default"];
 
@@ -221,7 +221,7 @@ class ViewNewsletter {
 	}
 
 	//listar todos os utilizadores
-	public function get_users(){
+	public function get_users(){	//moved to newsletters.mod and utilizadores.mod
 		$sql = "SELECT u.*, ug.is_admin FROM users u JOIN user_groups ug ON u.user_group = ug.id;";
 		$query = mysql_query($sql);
 		
@@ -237,7 +237,7 @@ class ViewNewsletter {
 	}
 
 	//listar os grupos a quais os utilizadores têm permissão
-	public function get_admin_group_permissions(){
+	public function get_admin_group_permissions(){	//moved to subscribers mod
 
 		//um utilizador is_admin tem acesso a tudo
 		$sql = "SELECT nc.id AS categoria_id, nc.categoria AS categoria_nome from newsletter_categorias nc";	
@@ -255,7 +255,7 @@ class ViewNewsletter {
 	}
 
 	//listar os grupos a quais os utilizadores têm permissão
-	public function get_group_permissions($user_id){
+	public function get_group_permissions($user_id){	//moved to subscribers mod and utilizadores
 
 		//um utilizador is_admin tem acesso a tudo
 		$sql = "SELECT nc.id AS categoria_id, nc.categoria AS categoria_nome from user_permissions up left join users u ON u.id = up.user_id left join newsletter_categorias nc ON up.group_id = nc.id where up.user_id = ".$user_id;	
@@ -273,7 +273,7 @@ class ViewNewsletter {
 	}
 
 	//listar os grupos a quais os utilizadores têm permissão
-	public function get_sender_permissions($user_id){
+	public function get_sender_permissions($user_id){	//moved to send.mod and utilizadores.mod
 
 		//um utilizador is_admin tem acesso a tudo
 		$sql = "SELECT s.id, s.email, s.`email_from` FROM user_sender_permissions usp
@@ -313,7 +313,7 @@ class ViewNewsletter {
 		
 	}
 
-	function get_users_with_permission_in_group($group_id){
+	function get_users_with_permission_in_group($group_id){	//Passado para mod/grupos
 		$sql = "SELECT u.id, u.first_name, u.last_name, u.username from user_permissions up inner join users u ON u.id = up.user_id WHERE group_id = {$group_id}";
 		$query = mysql_query($sql);
 
@@ -329,7 +329,7 @@ class ViewNewsletter {
 
 	}
 
-	public function show_grupo($id){
+	public function show_grupo($id){ 	//Added to views/grupos/edit
 
 		//há necessidade de update?
 		if($_POST["update_group"])
@@ -408,7 +408,7 @@ public function remove_grupo($id){
 	echo "<div class=\"alert alert-success\">Grupo removido com sucesso</div>";
 }
 
-public function categorias() {
+public function categorias() {	//Added to views/grupos/grupos
 
 	if(isset($_GET["remove"]))
 		$this->remove_grupo($_GET["remove"]);
@@ -632,7 +632,7 @@ function pre_visualizar($id = -1){
 }
 
 //listar os grupos a quais os utilizadores têm permissão
-public function get_users_with_permission_in_newsletter($newsletter_id){
+public function get_users_with_permission_in_newsletter($newsletter_id){	//Moved to newsletters.mod
 
 	//um utilizador is_admin tem acesso a tudo
 	$sql = "SELECT u.first_name, u.last_name, upn.id_user FROM user_permissions_newsletter upn RIGHT JOIN users u ON upn.id_user = u.id where id_newsletter = {$newsletter_id}";
@@ -894,7 +894,7 @@ function pre_send($id = -1){
 
 }
 
-function show_statistics_general(){
+function show_statistics_general(){	//moved to view statistics/statistiscs
 		//Vamos buscar os valores todos aqui no inicio
 
 		#Número de newsletters
@@ -1057,7 +1057,7 @@ function show_statistics_general(){
 
 
 
-function show_statistics($id){
+function show_statistics($id){	//mover to newsletter statistics
 	$bmm  = new BRIGHT_mail_feedback();
 	
 	$query ="SELECT * FROM `mensagens` WHERE `id` = '".$id."'";
@@ -1491,7 +1491,7 @@ function show_statistics($id){
 
 }
 
-function show_statistics2(){
+function show_statistics2(){	//Não funciona
 		//listar todas as visualizações da newsletter
 	$bmm = new BRIGHT_mail_feedback();
 	$client_id = $bmm->get_client_id();
@@ -1688,7 +1688,7 @@ function showMessages(){
 
 	}
 
-	function get_utilizador($id){
+	function get_utilizador($id){	//Moved to utilizadores
 		$sql = "SELECT * FROM users WHERE id = ".$id;
 		$query = mysql_query($sql);
 
@@ -1698,7 +1698,7 @@ function showMessages(){
 		return false;
 	}
 
-	function get_user_groups(){
+	function get_user_groups(){	//Moved to utilizadores
 		$sql = "SELECT id, name FROM user_groups";
 		$query = mysql_query($sql);
 
@@ -1713,7 +1713,7 @@ function showMessages(){
 
 	}
 
-	function render_user_groups($group_id){
+	function render_user_groups($group_id){	//Moved to utilizadores
 		$groups = $this->get_user_groups();
 
 		foreach ($groups as $group) {
@@ -1722,7 +1722,7 @@ function showMessages(){
 		}
 	}
 
-	function update_user_permissions($user_id, $permissions){
+	function update_user_permissions($user_id, $permissions){	//Moved to utilizadores
 
 		if(!empty($user_id) && count($permissions) > 0){
 			//apagar tudo primeiro
@@ -1741,7 +1741,7 @@ function showMessages(){
 
 	}
 
-	function update_sender_permissions($user_id, $permissions){
+	function update_sender_permissions($user_id, $permissions){	//moved to users
 
 			//apagar tudo primeiro
 		$sql = "DELETE FROM user_sender_permissions WHERE user_id = {$user_id}";
@@ -1840,7 +1840,7 @@ function showMessages(){
 
 	}
 
-	function show_utilizador($id){
+	function show_utilizador($id){	//Moved to utilizadores
 
 		if(isset($_POST["save"])):
 			switch ($id) {
@@ -2032,7 +2032,7 @@ function show_utilizadores(){
 }
 }
 
-function show(){
+function show(){	//moved to view subscribers / subscribers
 
 		//get info
 	$mod = $this->getMod();

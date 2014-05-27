@@ -3,16 +3,21 @@
 header("Content-Type: text/html; charset=utf-8");
 
 require_once('../inc/Core.php');
-$core = new Core('bo');
+if (!isset($_GET["mod"])) {
+	$_GET["mod"] = "dashboard";
+}
 
-if (isset($_GET['logout']) || isset($_GET['sdestroy'])):
-	session_destroy();
-unset($_SESSION);
-//header("Location: http://pme24.net/holmes/bmm/admin/" );
-endif;
+if ( !isset($_SESSION['user'] ) ) {
+	$_GET["mod"] = "login";
+}
+$core = new Core('bo');
 
 $debug = new Debug();
 $tools = $core->getTools();
+
+
+// É necessário carregar aqui o módulo. Antes de mostrar qualquer coisa.
+$core->load_mod( $_GET["mod"] );	//carregar o módulo, não pode ser mostrado agora
 
 ?>
 
@@ -49,12 +54,8 @@ $tools = $core->getTools();
 </head>
 
 <body id="internal">
-	<?php
-
-	if(!isset($_SESSION['user'])){
-		$core->getMod('login');
-	}else if($mod!='login'){?>
 	<div class="bright-bo">
+		<?php if ( $core->load_menu !== FALSE): ?>
 		<div class="header">
 			<div class="logo">
 				<a href='index.php?mod=dashboard'>
@@ -75,19 +76,19 @@ $tools = $core->getTools();
 
 						<!-- definicoes -->
 						<?php if($core->user->is_admin): ?>
-						<a class="btn btn-inverse text-white font-10" href='?mod=settings'><i class="icon-white icon-cog"></i> <?php echo _('Defini&ccedil;&otilde;es');?></a>
+						<a class="btn btn-inverse text-white font-10" href='?mod=settings_list'><i class="icon-white icon-cog"></i> <?php echo _('Defini&ccedil;&otilde;es');?></a>
 					<?php endif; ?>
 
 					<!-- force send DEVELOPER ONLY -->
 					<?php if($core->user->is_admin && false): ?>
-					<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/send_email.php?api=<?php echo $core->settings->sender_api_key ?>"  class="btn btn-inverse	 text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> For&ccedil;ar envio</a>
+					<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/send_email.php?api=<?php echo $core->settings->sender_api_key ?>"  class="btn btn-inverse	 text-white font-10" href="?mod=utilizadores&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> For&ccedil;ar envio</a>
 				<?php endif; ?>
 
 				<!-- check bounces DEVELOPER ONLY -->
 				<?php if($core->user->is_admin  && false): ?>
-				<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/check_bounces.php" class="btn btn-inverse text-white font-10" href="?mod=newsletter&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> 	Bounces</a>
+				<a target="_blank" rel="tooltip" href="http://<?php echo $_SERVER["HTTP_HOST"] ?>/bmm/inc/check_bounces.php" class="btn btn-inverse text-white font-10" href="?mod=utilizadores&amp;view=utilizadores"><i class="icon-white icon-exclamation-sign"></i> 	Bounces</a>
 			<?php endif; ?>
-			<a class="btn btn-danger text-white font-10" href='?logout'><i class="icon-white icon-off"></i> <?php echo _('Logout');?></a>
+			<a class="btn btn-danger text-white font-10" href='index.php?mod=login&view=logout'><i class="icon-white icon-off"></i> <?php echo _('Logout');?></a>
 		</div>
 	</div>
 </div>
@@ -96,19 +97,23 @@ $tools = $core->getTools();
 	<div class="navbar-inner">
 		<ul class="nav">
 			<li <?php if ( $_GET['mod']=='dashboard' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=dashboard"><?php echo _('Dashboard');?></a></li>
-			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='categorias') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=categorias">Grupos</a></li>
-			<li <?php if ( $_GET['mod']=='newsletter' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=newsletter"><?php echo _('Subscritores');?></a></li>
-			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='messages') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=messages">Newsletters</a></li>
-			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='statistics') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=statistics">Estat&iacute;sticas</a></li>						
+			<li <?php if ( $_GET['mod']=='grupos' && $_GET['view']=='grupos') echo 'class="active"'; ?>><a href="?mod=grupos&amp;view=grupos">Grupos</a></li>
+			<li <?php if ( $_GET['mod']=='subscribers' && !isset($_GET['view'])) echo 'class="active"'; ?>><a href="?mod=subscribers"><?php echo _('Subscritores');?></a></li>
+			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='messages') echo 'class="active"'; ?>><a href="?mod=newsletters&amp;view=messages">Newsletters</a></li>
+			<li <?php if ( $_GET['mod']=='statistics' && $_GET['view']=='statistics') echo 'class="active"'; ?>><a href="?mod=statistics&amp;view=statistics">Estat&iacute;sticas</a></li>						
 			<?php if($core->user->is_admin): ?>
-			<li <?php if ( $_GET['mod']=='newsletter' && $_GET['view']=='utilizadores') echo 'class="active"'; ?>><a href="?mod=newsletter&amp;view=utilizadores">Utilizadores</a></li>
+			<li <?php if ( $_GET['mod']=='utilizadores' && $_GET['view']=='utilizadores') echo 'class="active"'; ?>><a href="?mod=utilizadores&amp;view=utilizadores">Utilizadores</a></li>
 		<?php endif; ?>
 	</ul>
 </div>
 </div>
 </div>
+	<?php endif ?>
+
 <div class="clear"></div>
-<div class="content"><?php $core->getMod(); ?></div>
+<div class="content">
+	<?php echo $core->output; ?>
+</div>
 <div id="multiple-actions-confirmation" class="modal hide fade in">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -139,7 +144,6 @@ $tools = $core->getTools();
 	<?php echo Tools::notify_list() ?>
 </div>
 
-<?php } ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="../inc/libs/jquery-ui/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="../inc/js/tablesort.js"></script>

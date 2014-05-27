@@ -20,7 +20,7 @@ class Newsletter {
 		unset($this->lang);
 	}
 
-	function get_send_test( $id ){
+	function get_send_test( $id ){	//Moved to send.mod
 		$query = "SELECT * FROM `mensagens_teste_enviadas` WHERE `mensagem_id` = '".$id."' ORDER BY `hora` DESC";
 		$res = mysql_query($query) or die(mysql_error());
 		return $res;
@@ -29,7 +29,7 @@ class Newsletter {
 	/*
 	 * Devolve a lista de todos sliders ou info de uma especifica (se definidoo $id)
 	 */
-	function insert_mensagem($mensagem){
+	function insert_mensagem($mensagem){	//Moved to newsletters.mod
 
 		//gravar a mensagem
 		$query = "INSERT INTO `mensagens` (`assunto`, `url`, `mensagem`, `mensagem_browser`, `mensagem_text`, `data_update`, `estado`) VALUES ('".$mensagem->assunto."', '".$mensagem->url."', '".htmlspecialchars_decode( ( addslashes($mensagem->mensagem) ) )."', '".htmlspecialchars_decode( ( addslashes($mensagem->mensagem_browser) ) )."', '".htmlspecialchars_decode( ( $mensagem->mensagem_text ) )."', '".$mensagem->data_update."', '".$mensagem->estado."')";
@@ -48,7 +48,7 @@ class Newsletter {
 
 
 
-	function save_newsletter_permissions($users, $newsletter_id){
+	function save_newsletter_permissions($users, $newsletter_id){	//Moved to newsletters.mod
 
 
 		//nesta situação, remover todas as permissões
@@ -80,7 +80,7 @@ class Newsletter {
 		
 	}
 
-	function update_mensagem($mensagem){
+	function update_mensagem($mensagem){	//Moved to newsletters.mod
 
 
 		//update a newsletter
@@ -101,7 +101,7 @@ class Newsletter {
 		echo "<div class=\"alert alert-success\">Newsletter actualizada com sucesso</div>";
 		return true;
 	}
-	function initialize_mensagem_from_post(){
+	function initialize_mensagem_from_post(){	//Moved to newsletters.mod
 		$return = new stdClass;
 		$return->id = $_POST['mensagem_id'];
 		//$core = new Core();
@@ -119,7 +119,7 @@ class Newsletter {
 		return $return;
 	}
 
-	function initialize_mensagem($id = -1){
+	function initialize_mensagem($id = -1){	//Moved to newsletters.mod
 		$return = new stdClass;
 		if($id == -1){
 			$return->id = -1;
@@ -138,12 +138,12 @@ class Newsletter {
 	}
 
 
-	function get_num_mensagens(){
+	function get_num_mensagens(){	//Moved to newsletters.mod
 		$query = "SELECT * FROM `mensagens`";
 		$res = mysql_query($query) or die(mysql_error());
 		return mysql_num_rows($res);
 	}
-	function get_messages($start = 0, $limit = 30){
+	function get_messages($start = 0, $limit = 30){	//moved to statistics.mod and newsletters.mod
 
 		if($_SESSION["user"]->is_admin)
 			$query = "SELECT * FROM mensagens ORDER BY id DESC LIMIT ".$start.", ".$limit;
@@ -154,7 +154,7 @@ class Newsletter {
 		return $res;
 	}
 
-	function get_mensagem_by_id($id){
+	function get_mensagem_by_id($id){	//Moved to newsletters.mod, cópia no send.mod acho que há um cópia noutro lado
 		$query = "SELECT * FROM `mensagens` WHERE `id` = '".$id."'";
 		$res = mysql_query($query) or die(mysql_error());
 		if( mysql_num_rows($res) < 1 ){
@@ -179,16 +179,16 @@ class Newsletter {
 
 	//info dos subscritores - estas functions poderiam ser transportadas para o repositório da bright, juntamente com os subscritores...
 
-	function get_subscribers_in_date_interval($start, $finish){
+	function get_subscribers_in_date_interval($start, $finish){	//moved to statistics.mod
 		$query = "SELECT * FROM `subscribers` WHERE date_in BETWEEN '".$start."' AND '".$finish."'";
 	}
 
-	function get_subscribers_info_year($year){
+	function get_subscribers_info_year($year){	//Moved to statistics.mod
 		$this->get_subscribers_in_date_interval(1, 2);
 		return true;
 	}
 
-	function save() {
+	function save() {	//Added to subscribers mod
 		
 		//$core = new Core();
 		//$tools = $core->getTools();
@@ -236,7 +236,7 @@ class Newsletter {
 		//@header("Location: "._ROOT."?mod=newsletter", TRUE, 302);
 	}
 
-	function add_to_exclusion(){
+	function add_to_exclusion(){	//Added to subscribers mod
 
 		$emails_list = $_POST["add_to_exclusion"];
 		$emails = $this->find_emails_in_string($emails_list);
@@ -247,7 +247,7 @@ class Newsletter {
 			echo "<div class=\"alert alert-warning\">N&atilde;o foram encontrados e-mails v&aacute;lidos para adicionar &agrave; lista de exclus&atilde;o</div>";
 	}
 
-	function db_add_to_exclusion($emails){
+	function db_add_to_exclusion($emails){	//Added to subscribers mod
 		if (empty($emails)){
 			echo "N&atilde;o foram enviados e-mails para adicionar &agrave; base de dados";
 			return false;
@@ -264,7 +264,7 @@ class Newsletter {
 
 	}
 
-	function find_emails_in_string($string){
+	function find_emails_in_string($string){	//Added to subscribers mod
 		$string = str_replace("\\", "", $string);
 
 		$matches = array(); //create array
@@ -278,7 +278,7 @@ class Newsletter {
 	}
 
 
-	function import_file(){
+	function import_file(){	//moved to subscriber.mod
 		
 		ini_set("memory_limit", "-1");
 
@@ -566,7 +566,7 @@ class Newsletter {
 	}
 	
 	
-	function add_categoria(){
+	function add_categoria(){	//Added to groups
 		$core = new Core();
 		$tools = $core->getTools();
 

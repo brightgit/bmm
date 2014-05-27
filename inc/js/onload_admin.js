@@ -105,7 +105,7 @@ $(document).ready(function(){
 
 		counter_input ++;
 		var parent_row = $(this).parent().parent(); //tr
-		var full_row = '<tr><td><input type="text" name="sender[new]['+counter_input+'][email]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][email_from]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][return_path]" value=""></td><td><div class="table-actions"></div></td></tr>';
+		var full_row = '<tr><td><input type="text" name="sender[new]['+counter_input+'][email]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][email_from]" value=""></td><td><input type="text" name="sender[new]['+counter_input+'][return_path]" value=""></td><td><input type="password" name="sender[new]['+counter_input+'][return_path_password]" value=""></td><td><div class="table-actions"></div></td></tr>';
 		
 		$(full_row).insertBefore($(parent_row));
 	})
@@ -148,6 +148,7 @@ $(document).ready(function(){
 		
 	//morris
 	try{
+
 		//morris DONUT
 		var morris_donut_aberturas = Morris.Donut({
 		  element: 'morris-pie-aberturas',
@@ -170,6 +171,7 @@ $(document).ready(function(){
 		var source_table = $("table#table-aberturas-dia");
 		var timeline = [];
 		
+		console.log( "Morris Donut" );
 		source_table.find("th.data-header").each(function(index){
 			
 			var key = $(this).html();
@@ -208,6 +210,7 @@ $(document).ready(function(){
 		console.log("morris-line-aberturas not found");
 	}
 	
+	/*
 	try{
 		
 		var source_table = $("table#evo-subscritores");
@@ -234,6 +237,7 @@ $(document).ready(function(){
 	catch(e){
 		console.log("morris bars subscritores not found");
 	}
+	*/
 	
 	try{
 		
@@ -284,11 +288,12 @@ $(document).ready(function(){
 	}
 
 	//end morris
-	
+	/*
 	$(".mandril-btn").click(function(){
 		$("form#send_test").attr("action", "?mod=mass_email&mandrill=true");
 		$("form#send_test").submit();
 	})
+	*/
 
 	$("form").validate();
 

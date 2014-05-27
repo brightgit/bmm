@@ -209,15 +209,20 @@
 			$remove_token = md5($email.$salt);
 
 			if(is_numeric($envio_id)){
+				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
+				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
 
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
 				$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
-				//cria o link de remoção automática
-				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);
+				if ( $url = "mensagem-teste" ) {
+					//cria o link de remoção automática
+					$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id_teste=".$_SESSION["user"]->id."\">remover</a>", $html_body);
+				}else {
+					//cria o link de remoção automática
+					$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);					
+				}
 
-				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
-				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
 
 				//cria a imagem escondida
 				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".self::$url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
@@ -317,6 +322,8 @@
 			$bcsv->add_click( $click_a );
 			$bcsv->close();
 
+
+
 			$bcsv->open_visits( "write", $_GET["envio_id"] );
 
 
@@ -330,7 +337,6 @@
 
 			$bcsv->add_visit( $visit );
 			$bcsv->close();
-
 
 
 			header( "Location: ".$_GET["url_f"] );
@@ -529,7 +535,7 @@
 
 			$sql = "CREATE TABLE IF NOT EXISTS `temp_clicks` ( ".$sql_columns." ) COLLATE='utf8_general_ci' ENGINE=MyISAM;";
 			
-			$query = mysql_query($sql);
+			$query = mysql_query($sql) or die( mysql_error().$sql );
 			while ( $row = mysql_fetch_array($query) ) {
 				$clicks[] = $row;
 			}
@@ -541,7 +547,7 @@
 					foreach ($clicks as $click) {
 						//inserir as colunas dinamicamente
 						$insert_sql = "INSERT INTO `temp_clicks` (".implode(",", $columns).") VALUES ('".$click->email."', '".$click->url."', '".$click->date."', '".$click->referer."', '".$click->ip."')";
-						$insert = mysql_query($insert_sql);
+						$insert = mysql_query($insert_sql) or die( mysql_error().$sql );
 					}
 				}
 			}
@@ -565,7 +571,7 @@
 			//$query = $pdo->query($sql);
 			//$result = $query->fetchAll(PDO::FETCH_OBJ);
 
-			$res = mysql_query($sql);
+			$res = mysql_query($sql) or die_sql( $sql );
 			while ( $row = mysql_fetch_array($res) ) {
 				$result[] = $row;
 			}

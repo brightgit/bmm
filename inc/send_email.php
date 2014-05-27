@@ -28,16 +28,20 @@ function log_error( $e )
 #API KEY para este dominio
 #$api_key = $core->settings->sender_api_key;
 
-$emails_from = array( $core->settings->sender_email_from => $core->settings->sender_name);
+//$emails_from = array( $core->settings->sender_email_from => $core->settings->sender_name);
 
-
-$query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.id as subscriber_id, subscribers.email as subscriber_email, subscribers.hard_bounces_count as subscriber_hard_bounces_count, subscribers.nome as subscriber_nome, subscribers.data_nascimento as subscriber_data_nascimento, subscribers.sexo as subscriber_sexo, subscribers.telefone_1, subscribers.telefone_2, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id
+$query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensagens_enviadas.envio_id, subscribers.id as subscriber_id, subscribers.email as email, subscribers.hard_bounces_count as subscriber_hard_bounces_count, subscribers.nome as subscriber_nome, subscribers.data_nascimento as subscriber_data_nascimento, subscribers.sexo as subscriber_sexo, subscribers.telefone_1, subscribers.telefone_2, mensagens.mensagem, mensagens.mensagem_text, mensagens.assunto, mensagens.url, mensagens.user_id, senders.email as sender_email, senders.email_from as sender_name, senders.return_path as sender_return_path
 	from mensagens_enviadas 
 	inner join mensagens on mensagens_enviadas.mensagem_id = mensagens.id 
 	inner join subscribers on mensagens_enviadas.destino = subscribers.id 
+	inner join senders on senders.id = mensagens_enviadas.sender_id 
 	where mensagens.id is not null
 	limit 100
 	";
+
+	echo '<hr />';
+	echo $query;
+	echo '<hr />';
 
 	$res = mysql_query( $query ) or die( mysql_error() );
 	if(mysql_num_rows($res) == 0 ){	//No messages to be sent.
@@ -48,9 +52,14 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 	$doctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
 
 	while( $mensagem = mysql_fetch_object($res) ) {
+
+		//echo '<hr />';
+		//var_dump($mensagem);
+		//echo '<hr />';
+
 		//echo '1';
 		//Mensagem
-		$to = array($mensagem->subscriber_email => $mensagem->subscriber_email);
+		//$to = array($mensagem->subscriber_email => $mensagem->subscriber_email);
 		$html_body = BRIGHT_mail_feedback::inject($mensagem); //passa a receber apenas um parâmetro (informação da newsletter + informação do subscriber num object)
 
 		//Mandrill
@@ -62,16 +71,16 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 			        'html' => $html_body,
 			        'text' => $mensagem->mensagem_text,
 			        'subject' => $mensagem->assunto,
-			        'from_email' => $core->settings->sender_email_from,
-			        'from_name' => $core->settings->sender_name,
+			        'from_email' => $mensagem->sender_email,
+			        'from_name' => $mensagem->sender_name,
 			        'to' => array(
 			            array(
-			                'email' => $mensagem->subscriber_email,
+			                'email' => $mensagem->email,
 			                'name' => false,
 			                'type' => 'to'
 			            )
 			        ),
-			        'headers' => array('Reply-To' => $core->settings->return_path),
+			        'headers' => array('Reply-To' => $mensagem->sender_return_path),
 			        'important' => false,
 			        'track_opens' => null,
 			        'track_clicks' => false,
@@ -136,15 +145,23 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 			LEFT JOIN subscribers on mensagens_enviadas.destino = subscribers.id 
 			left join envios on envios.id = mensagens_enviadas.envio_id
 			WHERE `mensagens_enviadas`.`id` = ".$mensagem->id;
+
 		$res2 = mysql_query($query) or die( mysql_error() );
 		$row = mysql_fetch_object( $res2 );
+
+		//echo '<hr />';
+		//echo $query;
+		//echo '<hr />';
+		//var_dump($row);
+		//echo '<hr />';
+		
 
 		/* Bloco extra aqui no meio*/
 		//Meter nos stats
 		$query = "select * from stats where `month` = month( now() ) and `year` = year( now() ) and user_id = '".$row->user_id."'";
 		$res_stats = mysql_query( $query ) or log_error( mysql_error().$query );
-		if ( $row = mysql_fetch_array($res_stats) ) {	//temos vamos incrementar
-			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row["id"]."'";
+		if ( $row2 = mysql_fetch_array($res_stats) ) {	//temos vamos incrementar
+			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row2["id"]."'";
 			mysql_query($query) or log_error( mysql_error().$query );
 		}else{
 			$query = "insert into stats values (NULL, 1, 0, month( now() ), year( now() ), '".$row->user_id."' )";

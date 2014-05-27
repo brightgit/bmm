@@ -10,8 +10,22 @@ require_once('Core.php');
 $core = new Core('bo');
 
 //dados consoante o cliente
-$client_id = BRIGHT_mail_feedback::get_client_id();
-$client = BRIGHT_mail_feedback::get_client($client_id);
+
+//$client_id = BRIGHT_mail_feedback::get_client_id();
+//$client = BRIGHT_mail_feedback::get_client($client_id);
+
+if ( isset($_GET["send_id"]) ) {	//envio Real
+	$query ="select * from users left join envios on envios.user_id = users.id where envios.id = '".$_GET["send_id_teste"]."'";
+	$res = mysql_query($query) or die_sql( $query );
+	$client = mysql_fetch_object($res);
+}elseif ( isset($_GET["send_id_teste"]) ){	//Envio teste
+	$query ="select * from users where id = '".$_GET["send_id_teste"]."'";
+	$res = mysql_query($query) or die_sql( $query );
+	$client = mysql_fetch_object($res);
+}else{
+	mail( "hugo.silva@bright.pt", "BMM - remove.php - no user_id", var_export($_SESSION, true) );
+}
+
 
 class Subscriber{
 
@@ -44,6 +58,21 @@ class Subscriber{
 	//recebe um objecto subscriber e insere-o na lista de exclusão
 	//o subscritor será colocado numa lista à parte para evitar exportações erradas no futuro...é fácil esquecer uma flag que indica que foi excluído
 	function add_to_exclusion_list($email){
+		$query = "select group_concat( DISTINCT user_permissions.group_id separator ',' ) as ids from user_permissions
+			left join envios on user_permissions.user_id = envios.user_id
+			 where envios.id = '".$_POST["send_id"]."'
+			 group by user_permissions.group_id
+			 ";
+		$res = mysql_query($query) or die( mysql_error() );
+		$envio = mysql_fetch_array($res);
+
+		$query = "select * from subscribers where email = '".$email."'";
+		$res = mysql_query($query) or die( mysql_error() );
+		$subs = mysql_fetch_array($res);
+
+		//incomplete
+		$query = "delete from subscriber_by_cat where id_subscriber = '".$subs["id"]."' and id_categoria = ''";
+
 		$sql = "UPDATE subscribers SET is_active = 0, requested_exclusion = 1 WHERE email = '{$email}'";
 		$query = mysql_query($sql);
 
@@ -59,7 +88,7 @@ $email = $_GET["email"]; ?>
 
 <html>
 <head>
-	<title><?php echo utf8_encode($client->name) ?> - Remover subscri&ccedil;&atilde;o</title>
+	<title><?php echo ucfirst($client->sender_host) ?> - Remover subscri&ccedil;&atilde;o</title>
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url("inc/js/bootstrap/css/bootstrap.css") ?>" />
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans|Numans' rel='stylesheet' type='text/css' />
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url("inc/css/remove.css") ?>" />
@@ -68,13 +97,17 @@ $email = $_GET["email"]; ?>
 	</style>
 </head>
 <body>
-	<form action="" method="post">
+<?php if (isset($_GET["send_id_teste"])): ?>
+	<form action="remove.php?send_id_teste=<?php echo $_GET["send_id_teste"]; ?>" method="post">
+<?php else: ?>
+	<form action="remove.php?send_id_teste=<?php echo $_GET["send_id"]; ?>" method="post">
+<?php endif ?>
 
 		<div class="container main">
 
 			<div class="breathe">
 
-				<div class="logo-wrap"><a href="http://www.<?php echo $client->domain ?>"><img alt="Logo" src="bmm/inc/img/admin/client_logo.png" /></a></div>
+				<div class="logo-wrap"><img alt="Logo" src="data:image/jpg;base64, <?php echo base64_encode( $client->image_blob ) ?>" /></div>
 				<h2 class="text-center">Remover subscri&ccedil;&atilde;o</h2>
 
 				<!-- content starts here -->
@@ -91,6 +124,7 @@ $email = $_GET["email"]; ?>
 				<div class="breathe force-center">
 					<input type="text" name="email" value="" />
 					<input type="hidden" name="remove_token" value="<?php echo $remove_token ?>" />
+					<input type="hidden" name="send_id" value="<?php echo $_GET["send_id"]; ?>" />
 					<br />
 					<br />
 					<input type="submit" value="Confirmar" class="btn btn-primary" />

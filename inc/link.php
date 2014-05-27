@@ -16,7 +16,6 @@ require_once('Core.php');
 $core = new Core('bo');
 
 if(!empty($_GET["envio_id"]) && !empty($_GET["url"]) && !empty($_GET["email"]) ){
-
 	//instanciar feedback e registar o click
 	$feedback = new BRIGHT_mail_feedback;
 	$feedback->click_register();
