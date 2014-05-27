@@ -205,11 +205,11 @@ class Core {
 }
 
 function load_mod( $mod ) {
-	if ( file_exists( base_path( "application/modules/" . $mod . ".mod.php" ) ) ) {
-		include base_path( "application/modules/" . $mod . ".mod.php" );
+	if ( file_exists( base_path( "inc/modules/" . $mod . ".mod.php" ) ) ) {
+		include base_path( "inc/modules/" . $mod . ".mod.php" );
 	}else{
 		echo 'Module not found:<br />';
-		echo base_path( "application/modules/" . $mod . ".mod.php" );
+		echo base_path( "inc/modules/" . $mod . ".mod.php" );
 		die( );
 	}
 	//Iniciar o módulo (class), lá dentro deve processar as restantes variáveis.
