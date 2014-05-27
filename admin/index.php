@@ -12,7 +12,6 @@ if ( !isset($_SESSION['user'] ) ) {
 }
 $core = new Core('bo');
 
-$debug = new Debug();
 $tools = $core->getTools();
 
 
@@ -155,8 +154,15 @@ $core->load_mod( $_GET["mod"] );	//carregar o módulo, não pode ser mostrado ag
 <script type="text/javascript" src="../inc/js/noty/themes/default.js"></script>
 <script type="text/javascript" src="../inc/js/bootstrap/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="../inc/js/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+	CKEDITOR_PARENT = '../inc/libs/';
+	CKEDITOR_BASEPATH = '../inc/libs/ckeditor/';
+	CKFINDER_BASEPATH = '../inc/libs/kcfinder/browse.php?type=images';
+	CKFINDER_BASEPATH_FILE = '../inc/libs/kcfinder/browse.php';
+	BASEPATH = '../';
+	BASEURL = '../';
+</script>
 <script type="text/javascript" src="../inc/libs/ckeditor/ckeditor.js"></script>
-<script type="text/javascript" src="../inc/libs/ckeditor/adapters/jquery.js"></script>
 <script type="text/javascript" src="../inc/js/validator/jquery.validate.min.js"></script>
 <script type="text/javascript" src="../inc/js/validator/messages_pt_PT.js"></script>
 <script type="text/javascript" src="../inc/js/morris/morris.min.js"></script>

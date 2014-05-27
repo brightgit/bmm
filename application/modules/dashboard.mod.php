@@ -17,7 +17,8 @@ class Dashboard {
 	public $total_sent_last_semester;
 	public $total_subscribers_last_time_interval;
 	public $total_exclusion_requests_time_interval;
-	public $all_users;
+	public $num_users;
+	public $all_senders;
 
 	function __construct() {
 
@@ -40,18 +41,24 @@ class Dashboard {
 		$this->total_subscribers_last_time_interval = self::total_subscribers_last_time_interval($_SESSION["totais_stats"]);
 		$this->total_newsletter_sends_time_interval = self::total_newsletter_sends_time_interval($_SESSION["totais_stats"]);
 		$this->total_exclusion_requests_time_interval = self::total_exclusion_requests_time_interval($_SESSION["totais_stats"]);
+		$this->num_users = self::num_users(); //total entregues
 
-		$this->all_users = $this->get_all_users();
+		$this->all_senders = $this->get_all_senders();
 
 	}
 
-	function get_all_users() {
-		$query = "select * from users where is_active = 1";
+	function num_users(){
+		$query = "select id from users";
+		$res = mysql_query($query) or die_sql( $query );
+		return mysql_num_rows($res);
+	}
+
+	function get_all_senders() {
+		$query = "select * from senders where is_active = 1";
 		$res = mysql_query($query) or die( mysql_error().$sql );;
 		while ( $row = mysql_fetch_array($res) ) {
-			$aux["name"] = $row["first_name"] . " " . $row["last_name"];
-			$aux["id"] = $row["id"];
-			$ret[] = $aux;
+			
+			$ret[] = $row;
 		}
 		return $ret;
 
@@ -64,22 +71,24 @@ class Dashboard {
 		$_SESSION["totais_stats"] = empty($_SESSION["totais_stats"]) ? "trimester" : $_SESSION["totais_stats"];
 
 		if ( $_SESSION["user"]->is_admin ) {
-			$ids = "1,6,7,8";
+			$ids_q = "select group_concat(id separator ',') as ids from senders";
+			$res_q = mysql_query($ids_q) or die_sql( $ids_q );
+			$row_q = mysql_fetch_array($res_q);
+			$ids = $row_q["ids"];
 		}else{
 			$ids = $_SESSION["user"]->id;
 		}
 
-		$_SESSION["envios_pie_users"] = empty($_SESSION["envios_pie_users"]) ? $ids : $_SESSION["envios_pie_users"];
-		$_SESSION["subscritores_bars_users"] = empty($_SESSION["subscritores_bars_users"]) ? $ids : $_SESSION["subscritores_bars_users"];
-		$_SESSION["totais_stats_users"] = empty($_SESSION["totais_stats_users"]) ? $ids : $_SESSION["totais_stats_users"];
+		$_SESSION["dashboard_senders"] = empty($_SESSION["dashboard_senders"]) ? $ids : $_SESSION["dashboard_senders"];
+
+
+
 
 		if(!empty($_POST["time_period"]["envios_pie"])) $_SESSION["envios_pie"] = $_POST["time_period"]["envios_pie"];
 		if(!empty($_POST["time_period"]["subscritores_bars"])) $_SESSION["subscritores_bars"] = $_POST["time_period"]["subscritores_bars"];
 		if(!empty($_POST["time_period"]["totais_stats"])) $_SESSION["totais_stats"] = $_POST["time_period"]["totais_stats"];
 
-		if(!empty($_POST["time_period"]["envios_pie_users"])) $_SESSION["envios_pie_users"] = $_POST["time_period"]["envios_pie_users"];
-		if(!empty($_POST["time_period"]["subscritores_bars_users"])) $_SESSION["subscritores_bars_users"] = $_POST["time_period"]["subscritores_bars_users"];
-		if(!empty($_POST["time_period"]["totais_stats_users"])) $_SESSION["totais_stats_users"] = $_POST["time_period"]["totais_stats_users"];
+		if(!empty($_POST["dashboard_senders"])) $_SESSION["dashboard_senders"] = $_POST["dashboard_senders"];
 
 		$this->time_interval_labels = array(
 			"trimester" => "trimestre",
@@ -122,15 +131,18 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-			WHERE MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_permissions.user_id IN(".$_SESSION["totais_stats_users"].")
+			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
+
+			WHERE MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].")
 			UNION 
 			SELECT COUNT(subscribers.id) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
 				WHERE MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_permissions.user_id in( ". $_SESSION["totais_stats_users"] . " )";
+					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 
@@ -176,15 +188,17 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-			WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_permissions.user_id IN(".$_SESSION["totais_stats_users"].")
+			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
+			WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].")
 			UNION 
 			SELECT COUNT(subscribers.id) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
+			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
 				WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_permissions.user_id in( ". $_SESSION["totais_stats_users"] . " )";
+					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " )";
 		//echo "<hr />" . $sql . "<hr />";
 
 		/*
@@ -237,11 +251,11 @@ class Dashboard {
 		$sql = "SELECT COUNT(envios.id) AS total 
 			FROM envios 
 			WHERE month(date_sent) 
-			BETWEEN " . $month_start . " AND " . $month_end . " AND year(date_sent) = " . date("Y") . " and user_id in (".$_SESSION["totais_stats_users"].")
+			BETWEEN " . $month_start . " AND " . $month_end . " AND year(date_sent) = " . date("Y") . " and sender_id in (".$_SESSION["dashboard_senders"].")
 				UNION 
 			SELECT COUNT(envios.id) AS total 
 				FROM envios WHERE month(date_sent) 
-				BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year . " and user_id in (".$_SESSION["totais_stats_users"].")";
+				BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year . " and sender_id in (".$_SESSION["dashboard_senders"].")";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
@@ -285,7 +299,7 @@ class Dashboard {
 		$month_end = $time_interval[$time_interval_now]["to"];
 
 
-		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . " and user_id in (".$_SESSION["envios_pie_users"].")";
+		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . " and sender_id in (".$_SESSION["dashboard_senders"].")";
 		//echo $sql;
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
@@ -310,7 +324,7 @@ class Dashboard {
 	}
 
 	function get_total_sent(){
-		$sql = "SELECT mensagens_enviadas, mensagens_abertas FROM stats where user_id in ( ".$_SESSION["envios_pie_users"]." )";
+		$sql = "SELECT mensagens_enviadas, mensagens_abertas FROM stats where sender_id in ( ".$_SESSION["dashboard_senders"]." )";
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
@@ -325,7 +339,8 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-				WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y") . " and user_permissions.user_id in ( ".$_SESSION["envios_pie_users"]." )";
+			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
+				WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y") . " and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." )";
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 
 		$result = mysql_fetch_object($query);
@@ -339,7 +354,8 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-				where hard_bounces_count>0 and user_permissions.user_id in (".$_SESSION["envios_pie_users"].")";
+			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
+				where hard_bounces_count>0 and user_sender_permissions.sender_id in (".$_SESSION["dashboard_senders"].")";
 		//echo $sql;
 
 		$query = mysql_query($sql) or die( mysql_error().$sql );
@@ -355,7 +371,8 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-				WHERE YEAR(subscribers.date_created) = ".date("Y")." GROUP BY year_created and user_permissions.user_id in ( ".$_SESSION["envios_pie_users"]." )";
+			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
+				WHERE YEAR(subscribers.date_created) = ".date("Y")." GROUP BY year_created and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." )";
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
@@ -436,7 +453,8 @@ class Dashboard {
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
-			WHERE subscribers.date_created BETWEEN '".$date_start."' AND '".$date_end."' and user_permissions.user_id IN(".$_SESSION["subscritores_bars_users"].") GROUP BY month_created";
+			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id
+			WHERE subscribers.date_created BETWEEN '".$date_start."' AND '".$date_end."' and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].") GROUP BY month_created";
 
 
 		/*

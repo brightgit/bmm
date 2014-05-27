@@ -1,4 +1,5 @@
 <?php
+//session_start();
 
 /** This file is part of KCFinder project
   *
@@ -18,15 +19,15 @@
 
 $_CONFIG = array(
 
-    'disabled' => true,
+    'disabled' => false,
     'denyZipDownload' => false,
     'denyUpdateCheck' => false,
     'denyExtensionRename' => false,
 
     'theme' => "oxygen",
 
-    'uploadURL' => "../../../media",
-    'uploadDir' => "/home/bvcacilh/bvcacilhas.pt/html/media",
+    'uploadURL' => $_SESSION['KCFINDER']['uploadURL'],
+    'uploadDir' => $_SESSION['KCFINDER']['uploadDir'],
 
     'dirPerms' => 0755,
     'filePerms' => 0644,
@@ -51,8 +52,8 @@ $_CONFIG = array(
     'deniedExts' => "exe com msi bat php phps phtml php3 php4 cgi pl",
 
     'types' => array(
-		// CKEditor & FCKEditor types
-		'all' => "",
+
+        // CKEditor & FCKEditor types
         'files'   =>  "",
         'flash'   =>  "swf",
         'images'  =>  "*img",
@@ -64,8 +65,8 @@ $_CONFIG = array(
     ),
 
     'filenameChangeChars' => array(/*
-        ' ' => "-",
-        ':' => "-"
+        ' ' => "_",
+        ':' => "."
     */),
 
     'dirnameChangeChars' => array(/*
@@ -93,7 +94,7 @@ $_CONFIG = array(
     '_check4htaccess' => true,
     //'_tinyMCEPath' => "/tiny_mce",
 
-    '_sessionVar' => &$_SESSION['KCFINDER'],
+    '_sessionVar' => &$_SESSION['KCFINDER_GALLIMP'],
     //'_sessionLifetime' => 30,
     //'_sessionDir' => "/full/directory/path",
 

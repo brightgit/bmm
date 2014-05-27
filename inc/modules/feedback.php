@@ -46,10 +46,6 @@
 		public static $visualize_url = NEWSLETTER_VIEW_URL;
 		public static $remove_url = SUBSCRIPTION_REMOVE_URL;
 		public static $link_count_url = LINK_REDIRECT_URL;
-		public static $db_host = "server9.brightminds.pt";
-		public static $db_username = "brightmi_mstats";
-		public static $db_password = "Bright#$91";
-		public static $db_name = "brightmi_mail_stats";
 		public $email;
 		public $envio_id;
 		public $ip;
@@ -97,31 +93,6 @@
 			$this->render_fake_image();
 		}
 
-		public static function db_connect(){
-
-			$db_name = self::$db_name;
-			$db_host = self::$db_host;
-			$db_username = self::$db_username;
-			$db_password = self::$db_password;
-
-			try {
-				//$pdo = new PDO($pdo_string);
-
-				$pdo = new PDO('mysql:host=195.200.253.230;dbname=brightmi_mail_stats', $db_username, $db_password, array(
-					PDO::ATTR_PERSISTENT => false
-				));
-				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-			} catch (PDOException $ex) {
-				echo 'Connection failed: ' . $ex->getMessage();
-				$pdo = false;
-			}		
-
-			if($pdo)
-				return $pdo;
-			else
-				mail("franco.silva@bright.pt", "Erro Bright Mail Module", "Ocorreu um erro na ligação à db. Verificar MYSQL.");
-		}
 
 		function insert(  ){
 
@@ -159,73 +130,63 @@
 			$bcsv->close();
 		}
 
-		//vai buscar o id de cliente pelo domínio do site
-		public static function get_client_id(){
-
-			//conectar à db
-			$pdo = self::db_connect();
-			//$host = str_replace("www.", "", $_SERVER["SERVER_NAME"]);
-			$host = "holmesplacenews.pt";
-
-			//para funcionar em localhost, temos que fornecer um domain válido // podia estar melhor e termos uma pasta "localhost"
-			switch ($_SERVER["HTTP_HOST"]) {
-				case 'localhost':
-					$sql = "SELECT id FROM `clients` WHERE domain = 'brightminds.pt' " ;
-					break;
-				
-				default:
-					$sql = "SELECT id FROM `clients` WHERE domain = '{$host}' " ;
-					break;
-			}
-		
-
-			$query = $pdo->query($sql);
-			$client = $query->fetchObject();
-
-			return !empty($client->id) ? intval($client->id) : false;
-		}
-
-		public static function get_client( $id ){
-
-			//conectar à db
-			$pdo = self::db_connect();
-			$sql = "SELECT * FROM `clients` WHERE id = '".$id."'";
-			$query = $pdo->query($sql);
-			$client = $query->fetchObject();
-
-			return $client;
-		}
-
 		//recebe uma string de texto e injecta os parametros necessários a fazer o tracking
 		static function inject($mensagem){
+
+			var_dump($_POST);
+
 
 			$email = $mensagem->email;
 			$html_body = $mensagem->mensagem;
 			$envio_id = $mensagem->envio_id;
 			$url = $mensagem->url;
 		
+			if ( $url == "mensagem-teste" ) {
+				$query = "select senders.email from senders where senders.id = '".$_POST["sender_id"]."'";
+
+				$res = mysql_query($query);
+				$row = mysql_fetch_array($res);
+
+				$email_a = explode( "@", $row["email"] );
+				$domain = $email_a[1];
+			}else{
+				$query = "select senders.email from envios 
+					left join senders on envios.sender_id = senders.id where envios.id = '".$mensagem->envio_id."'";
+				$res = mysql_query($query);
+				$row = mysql_fetch_array($res);
+
+				$email_a = explode( "@", $row["email"] );
+				$domain = $email_a[1];				
+			}
+
+			$sender_url = "http://www.".$domain."/bmm/inc/modules/feedback.php";
+			$sender_visualize_url = "http://www.".$domain."/bmm/inc/visualize_news.php";
+			$sender_remove_url = "http://www.".$domain."/bmm/inc/remove.php";
+			$sender_link_count_url = "http://www.".$domain."/bmm/inc/link.php";
+
+
 			//remove token
 			$salt = "bright";
 			$remove_token = md5($email.$salt);
 
 			if(is_numeric($envio_id)){
 				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
-				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
+				$html_body = preg_replace('/href="(?!mailto)/', 'href="'.$sender_link_count_url.'?envio_id='.$envio_id.'&amp;url='.$url.'&amp;email='.$email.'&url_f=', $html_body);
 
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
-				$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
+				$html_body = str_replace("{ver_no_browser}", "<a href=\"".$sender_visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
 				if ( $url = "mensagem-teste" ) {
 					//cria o link de remoção automática
-					$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id_teste=".$_SESSION["user"]->id."\">remover</a>", $html_body);
+					$html_body = str_replace("{remover_email}", "<a href=\"".$sender_remove_url."?remove_token=".$remove_token."&send_id_teste=".$_SESSION["user"]->id."\">remover</a>", $html_body);
 				}else {
 					//cria o link de remoção automática
-					$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);					
+					$html_body = str_replace("{remover_email}", "<a href=\"".$sender_remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);					
 				}
 
 
 				//cria a imagem escondida
-				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".self::$url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
+				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".$sender_url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
 
 				//substituição dos matches do tipo {campo:<fieldname>}
 				preg_match_all("/{campo:([a-z-_0-9]*)}/", $html_body, $reg_exp_matches);
@@ -251,6 +212,8 @@
 
 
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
+				echo $html_body;
+				die("ifnsdpfiandsifu");
 				return $html_body;
 			}
 				
@@ -616,29 +579,6 @@
 
 		}
 
-		//regista uma newsletter
-		function insert_newsletter($id){
-
-			require_once(base_path()."/inc/file_class.php");
-
-			$bcsv = new bcsv();
-			$bcsv->initiate();
-
-			$log_info["mensagem_id"] = $id;
-			$log_info["client"] = BRIGHT_mail_feedback::get_client_id();
-
-			$bcsv->open_enviadas("write", $log_info);
-
-
-			$client_id = self::get_client_id();
-			$sql = "INSERT IGNORE INTO newsletters (id, client_id) VALUES (".$id.", ".$client_id.")";
-
-			//conexão
-			$pdo = self::db_connect();
-			$insert = $pdo->exec($sql);
-
-			return $insert;
-		}
 
 	}
 

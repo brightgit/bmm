@@ -34,7 +34,7 @@ class Login
 
 
 	function doLogin($user, $pass){
-		$sql = "SELECT u.id,u.first_name,u.last_name,u.username,u.email,u.date_joined,u.user_group,ug.is_admin from users u
+		$sql = "SELECT u.id,u.first_name,u.last_name,u.username,u.email,u.date_joined,u.user_group,ug.is_admin, u.sender_host from users u
 			inner join user_groups ug on u.user_group = ug.id
 			where
 			((u.email = '$user' and ug.email_login = 1) or
@@ -50,8 +50,13 @@ class Login
 					// Allow admin file upload
 			$_SESSION['KCFINDER'] = array();
 			$_SESSION['KCFINDER']['disabled'] = FALSE;
-			$_SESSION['KCFINDER']['uploadURL'] = $this->settings->ck_upload_url;
-			$_SESSION['KCFINDER']['uploadDir'] = $this->settings->ck_upload_dir;
+
+			
+			if ( !file_exists( base_path("media/".$user->sender_host) )) {
+				mkdir( base_path("media/".$user->sender_host).'/', 0777 );
+			}
+			$_SESSION['KCFINDER']['uploadURL'] = "http://www.".$user->sender_host."/bmm/media/".$user->sender_host;
+			$_SESSION['KCFINDER']['uploadDir'] = base_path("media/".$user->sender_host);
 			return TRUE;
 		}else{
 			return FALSE;
