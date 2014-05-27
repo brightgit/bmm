@@ -2,17 +2,17 @@
 	switch($_SERVER['HTTP_HOST']){
 		//development
 		case "localhost":
-			$host = 'pme24.net';
-			$user = 'pmenet_hugo';
-			$password = 'Hugo#$12';
-			$database = 'pmenet_bmmv3_t';
+			$host = 'server9.brightminds.pt';
+			$user = 'implanto_bmm_3';
+			$password = 'SpoilsOutingMuslinFalls77';
+			$database = 'implanto_bmm_3';
 		break;
 		//production
 		default:
-			$host = 'pme24.net';
-			$user = 'pmenet_hugo';
-			$password = 'Hugo#$12';
-			$database = 'pmenet_bmmv3_t';
+			$host = 'localhost';
+			$user = 'implanto_bmm_3';
+			$password = 'SpoilsOutingMuslinFalls77';
+			$database = 'implanto_bmm_3';
 		break;
 	}
 

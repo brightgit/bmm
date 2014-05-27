@@ -73,7 +73,7 @@
 				<div class="pull-right">
 					<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
 					<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
-					<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+					<a class="btn btn-primary" href="?mod=newsletters&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
 				</div>
 			</div>
 
