@@ -1,4 +1,5 @@
 <?php
+
 function error_email($msg)
 {
 	mail("hugo.silva@bright.pt", "Erro Bright Mail Module::Bounces", $msg);

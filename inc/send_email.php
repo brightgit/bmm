@@ -11,7 +11,7 @@ $core = new Core('bo');
 //Logs an aplication erro
 function log_error( $e )
 {
-	$query = "insert into send_email_errors set error = '".$e."'";
+	$query = "insert into send_email_errors set error = '".mysql_real_escape_string($e)."'";
 	$res = mysql_query($query);
 
 	//Vamos enviar email?
@@ -39,9 +39,9 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 	limit 100
 	";
 
-	echo '<hr />';
-	echo $query;
-	echo '<hr />';
+	// echo '<hr />';
+	// echo $query;
+	// echo '<hr />';
 
 	$res = mysql_query( $query ) or die( mysql_error() );
 	if(mysql_num_rows($res) == 0 ){	//No messages to be sent.
@@ -164,7 +164,8 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 			$query ="update stats set mensagens_enviadas = mensagens_enviadas + 1 where id = '".$row2["id"]."'";
 			mysql_query($query) or log_error( mysql_error().$query );
 		}else{
-			$query = "insert into stats values (NULL, 1, 0, month( now() ), year( now() ), '".$row->user_id."' )";
+			$query = "insert into stats 
+			set mensagens_enviadas = 1, mensagens_abertas = 0, user_id = '".$row->user_id."', month = '".date("n")."', year = '".date("Y")."', sender_id = '".$row->sender_id."'";
 			mysql_query($query) or log_error( mysql_error().$query );
 		}
 		/* END Bloco extra aqui no meio*/
@@ -194,8 +195,7 @@ $query  = "SELECT mensagens_enviadas.id, mensagens_enviadas.mensagem_id, mensage
 		$bcsv->close();
 
 		$query = "DELETE from `mensagens_enviadas` WHERE id = ".$mensagem->id;
-		//echo $query;
-		//echo $query . "<hr />";
+
 		if( mysql_query($query) ) {
 			
 		}else{

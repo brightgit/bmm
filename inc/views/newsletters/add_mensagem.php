@@ -71,9 +71,9 @@
 				<br />
 
 				<div class="pull-right">
-					<a href="?mod=newsletter&view=messages" class="btn"><?php echo _('Voltar');?></a>
+					<a href="?mod=newsletters&view=messages" class="btn"><?php echo _('Voltar');?></a>
 					<input type="submit" class="btn btn-success" name="submit" value="Inserir / Editar" />
-					<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+					<a class="btn btn-primary" href="?mod=send&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
 				</div>
 			</div>
 
@@ -113,9 +113,9 @@
 
 
 			<div class="pull-right">
-				<a href="?mod=newsletter&amp;view=messages" class="btn"><?php echo _('Voltar');?></a>
+				<a href="?mod=newsletters&amp;view=messages" class="btn"><?php echo _('Voltar');?></a>
 				<input type="submit" class="btn btn-success" name="submit" value="Guardar" />
-				<a class="btn btn-primary" href="?mod=newsletter&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
+				<a class="btn btn-primary" href="?mod=send&amp;view=pre_send&amp;id=<?php echo $mensagem->id ?>">Preparar envio <i class="icon-white icon-share"></i></a>
 			</div>
 
 		</div>

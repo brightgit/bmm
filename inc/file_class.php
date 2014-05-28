@@ -39,6 +39,8 @@ class bcsv extends BRIGHT_mail_feedback
 	public function initiate( $user_id = FALSE ){
 
 
+
+
 		$query = "select * from users where id = '".$user_id."'";
 
 		$res = mysql_query($query) or die( mysql_error() );
@@ -55,6 +57,16 @@ class bcsv extends BRIGHT_mail_feedback
 
 		if (file_exists( $this->folder_prefix.$row["sender_host"])) {
 			
+			if ( !file_exists( $this->folder_prefix.$row["sender_host"].'/visits' ) ) {
+				mkdir( $this->folder_prefix.$row["sender_host"].'/visits', 0777, true);
+			}
+			if ( !file_exists( $this->folder_prefix.$row["sender_host"].'/clicks' ) ) {
+				mkdir( $this->folder_prefix.$row["sender_host"].'/clicks', 0777, true);
+			}
+			if ( !file_exists( $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas' ) ) {
+				mkdir( $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas', 0777, true);
+			}
+
 		}else{
 
 			mkdir( $this->folder_prefix.$row["sender_host"], 0777, true);
@@ -63,6 +75,7 @@ class bcsv extends BRIGHT_mail_feedback
 			mkdir( $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas', 0777, true);
 
 		}
+
 		$this->folder = $row["sender_host"];
 
 	}
@@ -98,7 +111,9 @@ class bcsv extends BRIGHT_mail_feedback
 			}else{
 				if( $action != "write" ) { return false; }
 				$mode = "w";
-				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/visits/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 166");
+
+				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/visits/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 101");
+
 			}
 		}
 		else
@@ -137,7 +152,7 @@ class bcsv extends BRIGHT_mail_feedback
 			}else{
 				if( $action != "write" ) { return false; }
 				$mode = "w";
-				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/clicks/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 166");
+				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/clicks/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 140");
 			}
 		}
 		else
@@ -180,7 +195,7 @@ class bcsv extends BRIGHT_mail_feedback
 			}else{
 				if( $action != "write" ) { return false; }
 				$mode = "w";
-				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 166");
+				$this->conn = fopen($this->conn_file = $this->folder_prefix.$row["sender_host"].'/mensagens_enviadas/'.$this->filename, $mode) or die("Não foi possível criar ficheiro. - file_class 183");
 			}
 		}
 		else

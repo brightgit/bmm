@@ -16,7 +16,6 @@ function toogle_newsletter_categoria( categoria_id, subscriber_id, ele ) {
 	return false;
 }
 
-
 function details_in_popup(link, div_id){
 
     $.ajax({
@@ -391,7 +390,7 @@ $(document).ready(function(){
 
 		$("#slider_pagina").toggle("fast");
 	})
-
+	
 
 	///EDITED BY HUGO
 	$("#tipo_conteudo").change(function(){

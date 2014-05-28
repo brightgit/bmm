@@ -133,8 +133,6 @@
 		//recebe uma string de texto e injecta os parametros necessários a fazer o tracking
 		static function inject($mensagem){
 
-			var_dump($_POST);
-
 
 			$email = $mensagem->email;
 			$html_body = $mensagem->mensagem;
@@ -176,7 +174,7 @@
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
 				$html_body = str_replace("{ver_no_browser}", "<a href=\"".$sender_visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
-				if ( $url = "mensagem-teste" ) {
+				if ( $url == "mensagem-teste" ) {
 					//cria o link de remoção automática
 					$html_body = str_replace("{remover_email}", "<a href=\"".$sender_remove_url."?remove_token=".$remove_token."&send_id_teste=".$_SESSION["user"]->id."\">remover</a>", $html_body);
 				}else {
@@ -199,7 +197,8 @@
 				}
 
 				//substituição dos matches pré-feitos {saudacao}
-				if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber->sexo)){
+				//if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber->sexo)){	//Old line, $mensagem->subscriber->sexo doesnt exist
+				if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber_sexo)){
 					//determinar se é M ou F
 					$saudacao = $mensagem->subscriber_sexo == "M" ? "Caro Sr. " . $mensagem->subscriber_nome : "Cara Srª. " . $mensagem->subscriber_nome;
 					$html_body = str_replace("{saudacao}", $saudacao, $html_body); //subsctituir
@@ -213,42 +212,105 @@
 
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
 				return $html_body;
-			}
-				
-			else
+			}else{
 				return false;
+			}
 		}
 
 		static function inject_browser($html_body, $email, $mensagem_id){
-			return $html_body;
-			
+
+
+			$email = $email;
+			$html_body = $html_body;	
+			$envio_id = $mensagem_id;	//Isto pode ser apenas o id da newsletter caso seja uma mensagem de teste.
+			$url = $_GET["url"];
+
+
+			//var_dump( $url );
+
+
+			if ( $url == "mensagem-teste" ) {
+				//Aqui temos um problema pois se não houver sender não há dominio
+				$domain = $_SERVER["HTTP_HOST"];
+
+			}else{
+				$query = "select senders.email from envios 
+					left join senders on envios.sender_id = senders.id where envios.id = '".$envio_id."'";
+				$res = mysql_query($query);
+				$row = mysql_fetch_array($res);
+
+				$email_a = explode( "@", $row["email"] );
+				$domain = "www.".$email_a[1];				
+			}
+
+
+			$sender_url = "http://".$domain."/bmm/inc/modules/feedback.php";
+			$sender_visualize_url = "http://".$domain."/bmm/inc/visualize_news.php";
+			$sender_remove_url = "http://".$domain."/bmm/inc/remove.php";
+			$sender_link_count_url = "http://".$domain."/bmm/inc/link.php";
+
+
 			//remove token
 			$salt = "bright";
 			$remove_token = md5($email.$salt);
-			//$client_id = self::get_client_id();
 
-			//if(is_numeric($client_id)){
+			if(is_numeric($envio_id)){
 
 				//cria o link de topo o link URL tem de apontar para o visualize_news.php
-				//$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."?client=".$client_id."&mensagem_id=".$mensagem_id."&email=".$email."\">ver no browser</a>", $html_body);
-				//$html_body = str_replace("{ver_no_browser}", "<a href=\"".self::$visualize_url."/".$client_id."/".$mensagem_id."/".$email."\">clique aqui para ver no browser</a>", $html_body);
+				$html_body = str_replace("{ver_no_browser}", "<a href=\"".$sender_visualize_url."/".$envio_id."/".$url."/".$email."\">clique aqui para ver no browser</a>", $html_body);
 				
-				//cria o link de remoção automática
-				$html_body = str_replace("{remover_email}", "<a href=\"".self::$remove_url."?remove_token=".$remove_token."\">remover</a>", $html_body);
+				if ( $url == "mensagem-teste" ) {
+					//cria o link de remoção automática
+					$html_body = str_replace("{remover_email}", "<a href=\"#\">remover</a>", $html_body);
+				}else {
+					//cria o link de remoção automática
+					$html_body = str_replace("{remover_email}", "<a href=\"".$sender_remove_url."?remove_token=".$remove_token."&send_id=".$envio_id."\">remover</a>", $html_body);					
+				}
 
-
-				//a partir daqui, substituir todos os links <a> para um counter que faz um redirect
-				//$html_body = preg_replace('/href="(?!mailto)/', 'href="'.self::$link_count_url.'?client='.$client_id.'&amp;mensagem_id='.$mensagem_id.'&amp;email='.$email.'&url=', $html_body);
 
 				//cria a imagem escondida
+				$html_body = str_replace("</body>", " <img width=\"1\" height=\"1\" src=\"".$sender_url."?envio_id=".$envio_id."&amp;url=".$url."&amp;email=".$email."\" alt=\"Imagem\" /></body>", $html_body);
+
+
+				//Para este replace precisamos dos dados do subscritor
+				$query = "select subscribers.id as subscriber_id, subscribers.email as email, subscribers.hard_bounces_count as subscriber_hard_bounces_count, subscribers.nome as subscriber_nome, subscribers.data_nascimento as subscriber_data_nascimento, subscribers.sexo as subscriber_sexo, subscribers.telefone_1, subscribers.telefone_2, 
+ 						from subscribers where email = '".$email."'";
+				$res = mysql_query($query);
+				if ( mysql_num_rows($res) > 0 ) {
+					$mensagem = mysql_fetch_object($res);	//É falso dizer que isto é a mensagem pois é o subscritor.
+				}
+
+
+				//substituição dos matches do tipo {campo:<fieldname>}
+				preg_match_all("/{campo:([a-z-_0-9]*)}/", $html_body, $reg_exp_matches);
+
+				foreach ($reg_exp_matches[0] as $key => $value) {
+					
+					$replace = "subscriber_" . $reg_exp_matches[1][$key];				
+					$html_body = str_replace($value, $mensagem->$replace, $html_body);
+
+				}
+
+				//substituição dos matches pré-feitos {saudacao}
+				//if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber->sexo)){ //Old line $mensagem->subscriber->sexo doesnt exist
+				if(strpos($html_body, "{saudacao}") && !empty($mensagem->subscriber_sexo)){
+					//determinar se é M ou F
+					$saudacao = $mensagem->subscriber_sexo == "M" ? "Caro Sr. " . $mensagem->subscriber_nome : "Cara Srª. " . $mensagem->subscriber_nome;
+					$html_body = str_replace("{saudacao}", $saudacao, $html_body); //subsctituir
+				}
+				
+				if(strpos($html_body, "{idade}") && !empty($mensagem->subscriber_data_nascimento)){					
+					$idade = floor((time() - strtotime($mensagem->subscriber_data_nascimento)) /  (60 * 60 * 24 * 365));
+					$html_body = str_replace("{idade}", $idade, $html_body); //subsctituir
+				}
+
+
 				//$html_body = $html_body . " <img width=\"1\" height=\"1\" src=\"".self::$url."?client=".$client_id."&amp;mensagem_id=".$mensagem_id."&amp;email=".$email."\" alt=\"Imagem\" />";
 				return $html_body;
-			/*}
-				
-			else
-				return $html_body;*/
+			}else{
+				return false;
+			}
 		}
-
 		//regista um click num link numa determinada newsletter
 		function click_register(){
 
@@ -526,6 +588,22 @@
 		function get_top_clicks(){
 			//query
 			$sql = "select url, count(url) as total_clicks from temp_clicks group by url order by total_clicks DESC LIMIT 100";
+
+			//connect
+			//$pdo = self::db_connect();
+			//$query = $pdo->query($sql);
+			//$result = $query->fetchAll(PDO::FETCH_OBJ);
+
+			$res = mysql_query($sql) or die_sql( $sql );
+			while ( $row = mysql_fetch_array($res) ) {
+				$result[] = $row;
+			}
+
+			return $result;
+		}
+		function get_all_clicks(){
+			//query
+			$sql = "select url, email, url, `date`, referer, ip from temp_clicks order by date asc";
 
 			//connect
 			//$pdo = self::db_connect();

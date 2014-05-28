@@ -103,7 +103,9 @@
 				<h2 class="widget-title"><i class="icon-white icon-envelope"></i> Envios último <?php echo $dashboard->time_interval_labels[$_SESSION["envios_pie"]] ?></h2>
 				<div id="morris-graph-demo-1" style="height:170px;">
 					<?php 
+
 						$percent_abertas = number_format(($dashboard->opened_last_time_interval * 100 / $dashboard->delivered_last_time_interval),2);
+
 						$percent_entregues = number_format(($dashboard->delivered_last_time_interval - $dashboard->opened_last_time_interval - $dashboard->bounced_last_time_interval) * 100 / $dashboard->delivered_last_time_interval, 2);
 						$percent_bounces = number_format(($dashboard->bounced_last_time_interval * 100) / $dashboard->delivered_last_time_interval, 2);
 					?>
@@ -152,7 +154,7 @@
 				<h2 class="widget-title"><i class="icon-white icon-user"></i> Subscritores último <?php echo $dashboard->time_interval_labels[$_SESSION["subscritores_bars"]] ?></h2>
 				<div id="morris-graph-demo-2" style="height:220px;">
 					<?php foreach($dashboard->subscribers_by_interval as $month => $total): ?>
-					<input type="hidden" class="subscriber_month_totals" name="month_<?php echo $month ?>" value="<?php echo $total ?>" />
+					<input type="hidden" class="subscriber_month_totals" name="month_<?php echo (int)$total["month"] ?>" value="<?php echo $total["total"] ?>" />
 					<?php endforeach; ?>
 				</div>
 			</div>

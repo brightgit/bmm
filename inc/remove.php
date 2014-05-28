@@ -15,16 +15,24 @@ $core = new Core('bo');
 //$client = BRIGHT_mail_feedback::get_client($client_id);
 
 if ( isset($_GET["send_id"]) ) {	//envio Real
-	$query ="select * from users left join envios on envios.user_id = users.id where envios.id = '".$_GET["send_id_teste"]."'";
+
+	$query ="select * from users left join envios on envios.user_id = users.id where envios.id = '".$_GET["send_id"]."'";
 	$res = mysql_query($query) or die_sql( $query );
 	$client = mysql_fetch_object($res);
+
 }elseif ( isset($_GET["send_id_teste"]) ){	//Envio teste
+
 	$query ="select * from users where id = '".$_GET["send_id_teste"]."'";
 	$res = mysql_query($query) or die_sql( $query );
 	$client = mysql_fetch_object($res);
+
 }else{
+
 	mail( "hugo.silva@bright.pt", "BMM - remove.php - no user_id", var_export($_SESSION, true) );
+
 }
+
+//var_dump($client);
 
 
 class Subscriber{
@@ -100,7 +108,7 @@ $email = $_GET["email"]; ?>
 <?php if (isset($_GET["send_id_teste"])): ?>
 	<form action="remove.php?send_id_teste=<?php echo $_GET["send_id_teste"]; ?>" method="post">
 <?php else: ?>
-	<form action="remove.php?send_id_teste=<?php echo $_GET["send_id"]; ?>" method="post">
+	<form action="remove.php?send_id=<?php echo $_GET["send_id"]; ?>" method="post">
 <?php endif ?>
 
 		<div class="container main">

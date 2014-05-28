@@ -31,6 +31,9 @@ class Dashboard {
 		$this->hard_bounces_count = self::get_hard_bounces_count();
 		$this->exclusion_requests_per_month = self::get_exclusion_requests_per_month();		
 		$this->total_delivered = $this->total_sent - $this->hard_bounces_count; //total entregues
+		if ( $this->total_delivered < 0 ) {
+			$this->total_delivered = 0;
+		}
 
 		//pie graph - adaptado a intervalos de tempo
 		$this->delivered_last_time_interval = $this->delivered_last_time_interval($_SESSION["envios_pie"]); //enviadas
@@ -77,7 +80,10 @@ class Dashboard {
 			$row_q = mysql_fetch_array($res_q);
 			$ids = $row_q["ids"];
 		}else{
-			$ids = $_SESSION["user"]->id;
+			$ids_q = "select group_concat(sender_id separator ',') as ids from user_sender_permissions where user_id = '".$_SESSION["user"]->id."'";
+			$res_q = mysql_query($ids_q) or die_sql( $ids_q );
+			$row_q = mysql_fetch_array($res_q);
+			$ids = $row_q["ids"];
 		}
 
 		$_SESSION["dashboard_senders"] = empty($_SESSION["dashboard_senders"]) ? $ids : $_SESSION["dashboard_senders"];
@@ -105,45 +111,28 @@ class Dashboard {
 
 	function total_subscribers_last_time_interval($time_period){
 		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
-
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
-
-		//comparar com último intervalo de igual período
-		//caso 1 - o intervalo anterior corresponde a um ano anterior e terá de se adaptar a query
-		if($time_interval_now - 1 == 0){
-			$key = count($time_interval);
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y") - 1;
-		}
-		else{
-			$key = $time_interval_now - 1;
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y"); //current year
-		}
+		
+		$date_interval_now = self::date_interval_now( $time_period );
+		$date_interval_last = self::date_interval_last( $time_period );
 
 		//query
-		$sql = "SELECT COUNT(subscribers.id) AS total 
+		$sql = "SELECT COUNT(distinct(subscribers.id)) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
 
-			WHERE MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].")
+		WHERE subscribers.date_created BETWEEN '".$date_interval_now[0]."' AND '" . $date_interval_now[1] . "' and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].") and user_sender_permissions.user_id not IN(1) 
 			UNION 
-			SELECT COUNT(subscribers.id) AS total 
+			SELECT COUNT(distinct(subscribers.id)) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
-				WHERE MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " )";
+				WHERE subscribers.date_created BETWEEN '".$date_interval_last[0]."' AND '" . $date_interval_last[1] . "' 
+					and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " )  and user_sender_permissions.user_id not IN(1)";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 
@@ -158,61 +147,27 @@ class Dashboard {
 	}
 
 	function total_exclusion_requests_time_interval($time_period){
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
-
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
-
-		//comparar com último intervalo de igual período
-		//caso 1 - o intervalo anterior corresponde a um ano anterior e terá de se adaptar a query
-		if($time_interval_now - 1 == 0){
-			$key = count($time_interval);
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y") - 1;
-		}
-		else{
-			$key = $time_interval_now - 1;
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y"); //current year
-		}
-
-
+		$date_interval_now = self::date_interval_now( $time_period );
+		$date_interval_last = self::date_interval_last( $time_period );
 
 		//query
 		$sql = "
-		SELECT COUNT(subscribers.id) AS total 
+		SELECT COUNT(distinct(subscribers.id)) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
-			WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$month_start." AND " . $month_end . " AND YEAR(subscribers.date_created) = ".date("Y") . " and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].")
+			WHERE requested_exclusion > 0 AND subscribers.date_created BETWEEN '".$date_interval_now[0]."' AND '" . $date_interval_now[1] . "' and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].") and user_sender_permissions.user_id not IN(1) 
 			UNION 
-			SELECT COUNT(subscribers.id) AS total 
+			SELECT COUNT(distinct(subscribers.id)) AS total 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id 
-				WHERE requested_exclusion > 0 AND MONTH(subscribers.date_created) BETWEEN ".$prev_month_start." AND " . $prev_month_end . " 
-					AND YEAR(subscribers.date_created) = ".$prev_year . " and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " )";
-		//echo "<hr />" . $sql . "<hr />";
+				WHERE requested_exclusion > 0 AND subscribers.date_created BETWEEN '".$date_interval_last[0]."' AND '" . $date_interval_last[1] . "' and user_sender_permissions.sender_id in( ". $_SESSION["dashboard_senders"] . " ) and user_sender_permissions.user_id not IN(1) ";
 
-		/*
-		//Previous query, before users
-		$sql = "SELECT COUNT(id) AS total 
-			FROM subscribers 
-			WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$month_start." AND ".$month_end . " AND year(date_updated) = " . date("Y") . " 
-				UNION 
-			SELECT COUNT(id) AS total 
-				FROM subscribers 
-				WHERE requested_exclusion > 0 AND MONTH(date_updated) BETWEEN ".$prev_month_start." AND ".$prev_month_end . " AND year(date_updated) = " . $prev_year;
-		echo "<hr />" . $sql . "<hr />";
-		*/
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		while ($row = mysql_fetch_object($query)) {
@@ -226,37 +181,18 @@ class Dashboard {
 	}
 
 	function total_newsletter_sends_time_interval($time_period){
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
-
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
-
-		//comparar com último intervalo de igual período
-		//caso 1 - o intervalo anterior corresponde a um ano anterior e terá de se adaptar a query
-		if($time_interval_now - 1 == 0){
-			$key = count($time_interval);
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y") - 1;
-		}
-		else{
-			$key = $time_interval_now - 1;
-			$prev_month_start = $time_interval[$key]["from"];
-			$prev_month_end = $time_interval[$key]["to"];
-			$prev_year = date("Y"); //current year
-		}
+		$date_interval_now = self::date_interval_now( $time_period );
+		$date_interval_last = self::date_interval_last( $time_period );
 
 		//query
 		$sql = "SELECT COUNT(envios.id) AS total 
 			FROM envios 
-			WHERE month(date_sent) 
-			BETWEEN " . $month_start . " AND " . $month_end . " AND year(date_sent) = " . date("Y") . " and sender_id in (".$_SESSION["dashboard_senders"].")
+			WHERE date_sent
+			BETWEEN '" . $date_interval_now[0] . "' AND '" . $date_interval_now[1] . "' and sender_id in (".$_SESSION["dashboard_senders"].")
 				UNION 
 			SELECT COUNT(envios.id) AS total 
-				FROM envios WHERE month(date_sent) 
-				BETWEEN " . $prev_month_start . " AND " . $prev_month_end . " AND year(date_sent) = " . $prev_year . " and sender_id in (".$_SESSION["dashboard_senders"].")";
+				FROM envios WHERE date_sent
+				BETWEEN '" . $date_interval_last[0] . "' AND '" . $date_interval_last[1] . "' and sender_id in (".$_SESSION["dashboard_senders"].")";
 		//echo "<hr />" . $sql . "<hr />";
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
@@ -273,15 +209,12 @@ class Dashboard {
 
 	function bounced_last_time_interval($time_period){
 		
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
+		$date_interval_now = self::date_interval_now( $time_period );
+		//$date_interval_last = self::date_interval_last( $time_period );
 
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
+		$sql = "SELECT SUM(hard_bounces_count) AS total, MONTH(last_bounce_added) AS month_bounced, YEAR(last_bounce_added) FROM subscribers WHERE hard_bounces_count > 0 AND last_bounce_added BETWEEN '".$date_interval_now[0]."' AND '".$date_interval_now[1]."'";
 
 
-		$sql = "SELECT SUM(hard_bounces_count) AS total, MONTH(last_bounce_added) AS month_bounced, YEAR(last_bounce_added) FROM subscribers WHERE hard_bounces_count > 0 GROUP BY month_bounced HAVING month_bounced BETWEEN ".$month_start." AND ".$month_end;
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
@@ -290,18 +223,18 @@ class Dashboard {
 
 	function opened_last_time_interval($time_period){
 
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		//echo $time_interval_now;
-		$time_interval = self::load_time_interval_map($time_period);
-		//var_dump($time_interval);
-
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
+		$date_interval_now = self::date_interval_now( $time_period );
+		//$date_interval_last = self::date_interval_last( $time_period );
+		$time_start = strtotime( $date_interval_now[0] );
+		$time_end = strtotime( $date_interval_now[1] );
 
 
-		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . " and sender_id in (".$_SESSION["dashboard_senders"].")";
-		//echo $sql;
+
+		$sql = "SELECT SUM(mensagens_abertas) as total FROM stats WHERE 
+			year*12+month BETWEEN '".( date("Y", $time_start)*12 + date("n", $time_start) )."' and '".( date("Y", $time_end)*12 + date("n", $time_end) )."'
+			and sender_id in (".$_SESSION["dashboard_senders"].")";
+		
+		//echo '<hr />'.$sql . '<hr />';
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
@@ -310,14 +243,15 @@ class Dashboard {
 
 	function delivered_last_time_interval($time_period = "trimester"){
 
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
+		$date_interval_now = self::date_interval_now( $time_period );
+		//$date_interval_last = self::date_interval_last( $time_period );
+		$time_start = strtotime( $date_interval_now[0] );
+		$time_end = strtotime( $date_interval_now[1] );
 
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
-
-		$sql = "SELECT SUM(mensagens_enviadas) as total FROM stats WHERE month BETWEEN ".$month_start." AND " . $month_end . "";
+		$sql = "SELECT SUM(mensagens_enviadas) as total FROM stats WHERE 
+			year*12+month BETWEEN '".( date("Y", $time_start)*12 + date("n", $time_start) )."' and '".( date("Y", $time_end)*12 + date("n", $time_end) )."'
+			and sender_id in (".$_SESSION["dashboard_senders"].")";
+		//echo '<hr />'.$sql . '<hr />';
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 		$result = mysql_fetch_object($query);
 
@@ -325,7 +259,9 @@ class Dashboard {
 	}
 
 	function get_total_sent(){
+
 		$sql = "SELECT mensagens_enviadas, mensagens_abertas FROM stats where sender_id in ( ".$_SESSION["dashboard_senders"]." )";
+
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
@@ -335,13 +271,13 @@ class Dashboard {
 	}
 
 	function get_exclusion_requests_per_month(){
-		$sql = "SELECT COUNT(subscribers.id) / 12 AS average, MONTH(subscribers.date_updated), YEAR(subscribers.date_updated) 
+		$sql = "SELECT COUNT(distinct(subscribers.id)) / 12 AS average, MONTH(subscribers.date_updated), YEAR(subscribers.date_updated) 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
-				WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y") . " and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." )";
+				WHERE requested_exclusion = 1 AND YEAR(date_updated) = ".date("Y") . " and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." ) and user_sender_permissions.user_id not IN(1) ";
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 
 		$result = mysql_fetch_object($query);
@@ -350,36 +286,112 @@ class Dashboard {
 	}
 
 	function get_hard_bounces_count(){
-		$sql = "SELECT count(subscribers.id) AS total_bounces 
+		$sql = "SELECT COUNT(distinct(subscribers.id)) AS total_bounces 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
-				where hard_bounces_count>0 and user_sender_permissions.sender_id in (".$_SESSION["dashboard_senders"].")";
+				where hard_bounces_count>0 and user_sender_permissions.sender_id in (".$_SESSION["dashboard_senders"].") and user_sender_permissions.user_id not IN(1) ";
 		//echo $sql;
 
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 		$result = mysql_fetch_object($query);
+
+		//echo $result->total_bounces;
+
 
 		return $result->total_bounces;
 	}
 
 	//baseado no numero de subscribers por ano
 	function get_subscribers_per_month(){
-		$sql = "SELECT COUNT(subscribers.id) / 12 AS average, YEAR(subscribers.`date_created`) AS year_created 
+		$sql = "SELECT COUNT(distinct(subscribers.id)) / 12 AS average, YEAR(subscribers.`date_created`) AS year_created 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_sender_permissions.user_id = user_permissions.user_id 
-				WHERE YEAR(subscribers.date_created) = ".date("Y")." GROUP BY year_created and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." )";
+				WHERE YEAR(subscribers.date_created) = ".date("Y")." GROUP BY year_created and user_sender_permissions.sender_id in ( ".$_SESSION["dashboard_senders"]." ) and user_sender_permissions.user_id not IN(1) ";
 		$query = mysql_query($sql) or die( mysql_error().$sql );;
 
 		$result = mysql_fetch_object($query);
 
 		return number_format($result->average, 2);
 	}
+
+
+
+	function date_interval_now( $time_period ){
+		switch ($time_period) {
+			case 'trimester':
+			case 'trimesters':
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-2 month" ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now" ) );
+				break;
+
+			case 'semester':
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-5 month" ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now" ) );
+				break;
+
+			case 'year'	:
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-11 month" ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now" ) );
+				break;
+			default:
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-2 month" ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now" ) );
+				break;
+		}
+		return $ret;
+	}
+
+	function date_interval_last( $time_period ){
+
+		switch ($time_period) {
+			case 'trimester':
+			case 'trimesters':
+				$time = strtotime("-3 month");
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-2 month", $time ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now", $time ) );
+				break;
+
+			case 'semester':
+				$time = strtotime("-6 month");
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-5 month", $time ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now", $time ) );
+				break;
+
+			case 'year'	:
+				$time = strtotime("-1 year");
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-11 month", $time ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now", $time ) );
+				break;
+			default:
+				$time = strtotime("-3 month");
+				$ret[0] = date( "Y-m-01 00:00:01", strtotime( "-2 month", $time ) );
+				$ret[1] = date( "Y-m-31 23:59:59", strtotime( "now", $time ) );
+				break;
+		}
+		return $ret;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//como vai ser necessaria para escala de tempo
 	function load_time_interval_map($time_type){
@@ -437,25 +449,18 @@ class Dashboard {
 
 	function get_subscribers_by_time_interval($time_period){
 
-		//dentro do intervalo (trimestre / semestre) em qual estamos? 1º ou 2º trimesttre / semestre
-		$time_interval_now = self::get_current_time_interval($time_period);
-		$time_interval = self::load_time_interval_map($time_period);
-
-		$month_start = $time_interval[$time_interval_now]["from"];
-		$month_end = $time_interval[$time_interval_now]["to"];
-
-		$date_start = date("Y-".$month_start."-01");
-		$date_end = date("Y-".$month_end."-31");
+		$date_interval_now = self::date_interval_now( $time_period );
+		//$date_interval_last = self::date_interval_last( $time_period );
 		
 		//query
 		$sql = "
-		SELECT *, COUNT(subscribers.id) AS total, MONTH(subscribers.date_created) AS month_created 
+		SELECT COUNT(distinct(subscribers.id)) AS total, MONTH(subscribers.date_created) AS month_created 
 			FROM subscribers 
 			left join subscriber_by_cat on subscriber_by_cat.id_subscriber = subscribers.id 
 			left join newsletter_categorias on newsletter_categorias.id = subscriber_by_cat.id_categoria 
 			left join user_permissions on user_permissions.group_id = newsletter_categorias.id 
 			left join user_sender_permissions on user_permissions.user_id = user_sender_permissions.user_id
-			WHERE subscribers.date_created BETWEEN '".$date_start."' AND '".$date_end."' and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].") GROUP BY month_created";
+			WHERE subscribers.date_created BETWEEN '".$date_interval_now[0]."' AND '".$date_interval_now[1]."' and user_sender_permissions.sender_id IN(".$_SESSION["dashboard_senders"].") and user_sender_permissions.user_id not IN(1) GROUP BY month_created order by month_created asc";
 
 
 		/*
@@ -465,16 +470,33 @@ class Dashboard {
 		//echo " <hr /> " . $sql . " <hr /> ";
 		$query = mysql_query($sql) or die( mysql_error().$sql );
 
-		while ($row = mysql_fetch_object($query)) {
-			$this->subscribers_last_time_interval += $row->total;
-			$subscribers_totals[$row->month_created] = $row->total;
+		$month_end = date( "n", strtotime($date_interval_now[1]) );
+		$month_start = date( "n", strtotime($date_interval_now[0]) );
+
+
+		if ( $month_end < $month_start ) {
+			$month_end += 12;
 		}
 
-		for ($i= $time_interval[$time_interval_now]["from"]; $i <= $time_interval[$time_interval_now]["to"]; $i++) { 
-			$subscribers_per_month[$i] = (int) $subscribers_totals[$i];
+
+		while ( $row = mysql_fetch_array($query) ) {
+			$aux[ $row["month_created"] ] = $row["total"];
 		}
 
-		return $subscribers_per_month;
+		while ( $month_end >= $month_start ) {
+			unset($a);
+			$a["month"] = ($month_start>12)?($month_start-12):($month_start);
+			$a["total"] = ( isset( $aux[ $a["month"] ] ) )?$aux[ $a["month"] ]:0;
+			$ret[] = $a;
+
+			$month_start++;
+		}
+
+			//$this->subscribers_last_time_interval += $row->total;
+
+		//var_dump($ret);
+
+		return $ret;
 
 	}
 }

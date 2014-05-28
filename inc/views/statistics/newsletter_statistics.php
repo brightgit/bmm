@@ -40,8 +40,8 @@
 		echo '<div class="control-group">
 			<label>Envio:</label>';
 		echo '<form method="get" action="index.php" class="form-horizontal">';
-		echo '<input type="hidden" name="mod" value="newsletter" />';
-		echo '<input type="hidden" name="view" value="statistics" />';
+		echo '<input type="hidden" name="mod" value="statistics" />';
+		echo '<input type="hidden" name="view" value="newsletter_statistics" />';
 		echo '<input type="hidden" name="id" value="'.$_GET["id"].'" />';
 		echo '<div class=""><select name="envio_id" class="inline" style="width:auto;">';
 		while( $row = mysql_fetch_array($res) ) {	//Iterar os envios
@@ -53,7 +53,7 @@
 				$active_envio = $row;
 				echo '<option value="'.$row["id"].'" selected="selected">'.$row["date_sent"].( ($_SESSION["user"]->is_admin)? ' ('.$row["first_name"].' '.$row["last_name"].') ':'' ).'</option>';
 			}else{
-				echo '<option value="'.$row["id"].'">'.$row["date_sent"].'</option>';
+				echo '<option value="'.$row["id"].'">'.$row["date_sent"].( ($_SESSION["user"]->is_admin)? ' ('.$row["first_name"].' '.$row["last_name"].') ':'' ).'</option>';
 			}
 		}
 		echo '</select> <input type="submit" class="btn btn-primary" value="Visualizar" name="submit" /> </div></div>';
@@ -186,7 +186,9 @@
 
 		//processar os dados
 		//links mais visitados
-		$top_clicks = $bmm->get_top_clicks();
+		$top_clicks = $bmm->get_all_clicks();
+		$total_clicks = $bmm->get_top_clicks();
+
 
 
 		//utilizadors mais activos
@@ -253,7 +255,7 @@
 					</td>
 					<td><?php echo $item->ip ?></td>
 					<td>
-						<a href="#" class="tooltip2" rel="tooltip" data-original-title="<?php echo $item->user_agent; ?>">
+						<a href="#" class="tooltip2" rel="tooltip" data-original-title="<?php echo $item->referer; ?>">
 							<?php echo substr( $item->referer, 0, 50); echo ( $item->referer > 50 )? '...' : ''; ?>
 						</a>
 					</td>
@@ -368,8 +370,7 @@
 
 <!-- clicks -->
 <div class="row-fluid">
-
-	<?php if (!empty($top_clicks)): ?>
+	<?php if (!empty($total_clicks)): ?>
 	
 	<div class="well most-viewed">
 
@@ -383,7 +384,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<?php foreach ($top_clicks as $click): ?>
+					<?php foreach ($total_clicks as $click): ?>
 					<tr>
 						<td><a href="<?php echo $click->url ?>"><?php echo $click["url"] ?></a></td>
 						<td><?php echo $click["total_clicks"] ?></td>
